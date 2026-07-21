@@ -39,13 +39,17 @@ This repository is split into two primary environments:
    ```bash
    npm install
    ```
-3. Run the API Server:
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+4. Run the API Server:
    ```bash
    npm run dev
    ```
-4. *Optional:* Run the background worker to fetch new articles:
+5. *Optional:* Run the background worker to fetch new articles:
    ```bash
-   npx ts-node src/worker.ts
+   npx tsx src/worker.ts
    ```
 
 ### Frontend Setup
