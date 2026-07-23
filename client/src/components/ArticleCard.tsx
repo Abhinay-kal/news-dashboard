@@ -10,7 +10,7 @@ export interface Article {
 
 interface Props {
 	article: Article;
-	onStatusChange: (id: string, newStatus: "APPROVED" | "REJECTED") => void;
+	onStatusChange: (id: string, newStatus: "APPROVED" | "REJECTED" | "PENDING") => void;
 }
 
 export default function ArticleCard({ article, onStatusChange }: Props) {
@@ -58,6 +58,13 @@ export default function ArticleCard({ article, onStatusChange }: Props) {
 				</div>
 
 				<div className="flex gap-2">
+					<button
+						type="button"
+						onClick={() => onStatusChange(article._id, "PENDING")}
+						className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors cursor-pointer"
+					>
+						Reset
+					</button>
 					<button
 						type="button"
 						onClick={() => onStatusChange(article._id, "REJECTED")}

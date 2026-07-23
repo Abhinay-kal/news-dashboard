@@ -14,7 +14,7 @@ export interface IArticle extends Document {
 const ArticleSchema: Schema = new Schema(
 	{
 		title: { type: String, required: true },
-		sourceUrl: { type: String, required: true },
+		sourceUrl: { type: String, required: true, unique: true },
 		topicCategory: { type: String, required: true },
 		summary: { type: [String], required: true },
 		status: {

@@ -1,24 +1,61 @@
-name: CI
 
+
+name: Continuous Integration (CI) workflow
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
+    branches: [ main ] # Trigger CI on push to 'main' branch
+  pull_request:
+
+
+    branches: [ main ] # Trigger CI on PR to 'main' branch
 jobs:
-  lint-and-format:
-    runs-on: ubuntu-latest
+
+
+  lint-and-format: # Job name
+    runs-on: ubuntu-latest # Run job on Ubuntu 20.04 LTS
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+
+
+
+
+      - uses: actions/checkout@v4 # Checkout repository code
         with:
-          node-version: '20'
-          
-      - name: Install root dependencies
-        run: npm ci
-        
-      - name: Run Biome Check
-        run: npx @biomejs/biome ci .
+
+
+
+
+
+
+
+          token: ${{ secrets.GITHUB_TOKEN }} # Use GitHub Token for authentication
+
+      - name: Setup Node.js environment # Set up Node.js environment
+        uses: actions/setup-node@v4 # Use 'actions/setup-node' action to set up Node.js environment
+        with:
+          node-version: '20' # Install Node.js version 20
+
+      - name: Install root dependencies # Install project's root dependencies
+        run: npm ci --prefer-offline # Run 'npm ci' command with '--prefer-offline' flag
+
+      - name: Run Biome Check # Run Biome Linter and Formatter
+        run: npx @biomejs/biome ci . # Run Biome linter and formatter on the current directory
+
+
+
+
+
+
+
+          token: ${{ secrets.GITHUB_TOKEN }} # Use GitHub Token for authentication
+
+      - name: Setup Node.js environment # Set up Node.js environment
+        uses: actions/setup-node@v4 # Use 'actions/setup-node' action to set up Node.js environment
+        with:
+          node-version: '20' # Install Node.js version 20
+
+      - name: Install root dependencies # Install project's root dependencies
+        run: npm ci --prefer-offline # Run 'npm ci' command with '--prefer-offline' flag
+
+      - name: Run Biome Check # Run Biome Linter and Formatter
+        run: npx @biomejs/biome ci . # Run Biome linter and formatter on the current directory

@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 import ArticleCard, { type Article } from "./ArticleCard";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://localhost:5001/api";
 
 export default function DailyView() {
 	const queryClient = useQueryClient();
@@ -11,6 +11,8 @@ export default function DailyView() {
 	const [runDate, setRunDate] = useState(
 		() => new Date().toISOString().split("T")[0],
 	);
+	const [manualInput, setManualInput] = useState("");
+	const [isAdding, setIsAdding] = useState(false);
 
 	// Fetch articles using React Query
 	const {
@@ -53,17 +55,39 @@ export default function DailyView() {
 
 	const handleStatusChange = (
 		id: string,
-		newStatus: "APPROVED" | "REJECTED",
+		newStatus: "APPROVED" | "REJECTED" | "PENDING",
 	) => {
 		updateStatusMutation.mutate({ id, status: newStatus });
 	};
 
+	const handleManualSubmit = async () => {
+		if (!manualInput.trim()) return;
+		setIsAdding(true);
+		try {
+			const res = await fetch(`${API_URL}/articles/manual`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ input: manualInput }),
+			});
+			if (!res.ok) throw new Error("Failed to add article");
+			
+			// Refresh articles list
+			queryClient.invalidateQueries({ queryKey: ["articles", runDate] });
+			setManualInput("");
+		} catch (error) {
+			console.error(error);
+			alert("Error adding manual article or no articles found. Check console for details.");
+		} finally {
+			setIsAdding(false);
+		}
+	};
+
 	return (
-		<div className="max-w-4xl mx-auto py-8 px-4">
+		<div className="w-full py-8 px-[80px]">
 			{/* Header and Date Navigation */}
 			<header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 gap-4 sm:gap-0">
 				<div>
-					<h1 className="text-2xl font-bold text-gray-900">Daily Curation</h1>
+					<h1 className="text-2xl font-bold text-[#006a0a]">Daily Curation</h1>
 					<p className="text-gray-500 text-sm">
 						Reviewing articles for {runDate}
 					</p>
@@ -89,6 +113,26 @@ export default function DailyView() {
 					</button>
 				</div>
 			</header>
+
+			{/* Manual Add Section */}
+			<div className="mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+				<input 
+					type="text" 
+					placeholder="Enter an article URL or plain text to search..." 
+					className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+					value={manualInput}
+					onChange={(e) => setManualInput(e.target.value)}
+					disabled={isAdding}
+				/>
+				<button 
+					type="button"
+					onClick={handleManualSubmit} 
+					disabled={isAdding || !manualInput}
+					className="px-6 py-2 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 transition-colors shrink-0"
+				>
+					{isAdding ? "Searching & Parsing..." : "Add Article"}
+				</button>
+			</div>
 
 			{/* Loading & Error States */}
 			{isLoading && (
