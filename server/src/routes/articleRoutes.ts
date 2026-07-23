@@ -62,6 +62,56 @@ router.patch("/:id/status", async (req, res) => {
 });
 
 /**
+ * GET /api/articles/:id/similar
+ * Finds similar articles from other sources via Google News RSS.
+ */
+router.get("/:id/similar", async (req, res) => {
+	try {
+		const article = await Article.findById(req.params.id);
+		if (!article) return res.status(404).json({ error: "Article not found" });
+
+		// Extract publisher from title (usually after the last '-')
+		let publisher = "";
+		let searchTitle = article.title;
+		const lastDashIndex = article.title.lastIndexOf("-");
+		if (lastDashIndex !== -1) {
+			publisher = article.title.substring(lastDashIndex + 1).trim();
+			searchTitle = article.title.substring(0, lastDashIndex).trim();
+		}
+
+		// Use the core title for searching
+		const searchQuery = encodeURIComponent(searchTitle);
+		const parser = new Parser();
+		const searchUrl = `https://news.google.com/rss/search?q=${searchQuery}&hl=en-IN&gl=IN&ceid=IN:en`;
+		
+		const feed = await parser.parseURL(searchUrl);
+		const similarArticles = [];
+		
+		for (const item of feed.items) {
+			if (!item.title || !item.link) continue;
+			
+			// Filter out articles from the same publisher
+			if (publisher && item.title.includes(publisher)) continue;
+			
+			// Filter out the exact same article
+			if (item.title === article.title || item.link === article.sourceUrl) continue;
+
+			similarArticles.push({
+				title: item.title,
+				sourceUrl: item.link
+			});
+
+			if (similarArticles.length >= 3) break;
+		}
+
+		res.json(similarArticles);
+	} catch (error) {
+		console.error("[Similar Articles Error]:", error);
+		res.status(500).json({ error: "Failed to fetch similar articles" });
+	}
+});
+
+/**
  * POST /api/articles/manual
  * Manually adds an article by parsing the provided URL or searching a topic.
  */

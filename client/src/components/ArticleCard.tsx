@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export interface Article {
 	_id: string;
 	title: string;
@@ -14,8 +16,36 @@ interface Props {
 }
 
 export default function ArticleCard({ article, onStatusChange }: Props) {
+	const [showSimilar, setShowSimilar] = useState(false);
+	const [similarArticles, setSimilarArticles] = useState<{title: string, sourceUrl: string}[]>([]);
+	const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
+
+	const handleLoadSimilar = async () => {
+		if (showSimilar) {
+			setShowSimilar(false);
+			return;
+		}
+		
+		setShowSimilar(true);
+		if (similarArticles.length > 0) return; // Already loaded
+
+		setIsLoadingSimilar(true);
+		try {
+			// API_URL is defined in DailyView, but here we can just use relative or hardcoded 
+			const res = await fetch(`http://localhost:5001/api/articles/${article._id}/similar`);
+			const data = await res.json();
+			if (res.ok) {
+				setSimilarArticles(data);
+			}
+		} catch (error) {
+			console.error("Failed to fetch similar articles", error);
+		} finally {
+			setIsLoadingSimilar(false);
+		}
+	};
+
 	return (
-		<div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4">
+		<div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-all hover:shadow-md">
 			{/* Header: Title and Category Badge */}
 			<div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3 sm:gap-4">
 				<a
@@ -39,9 +69,40 @@ export default function ArticleCard({ article, onStatusChange }: Props) {
 					</li>
 				))}
 			</ul>
+			
+			{/* Similar Articles Section */}
+			<div className="mt-2">
+				<button 
+					type="button" 
+					onClick={handleLoadSimilar}
+					className="text-sm font-semibold text-blue-600 hover:text-blue-800 focus:outline-none flex items-center gap-1 transition-colors"
+				>
+					{showSimilar ? "▼ Hide Similar Coverage" : "▶ Show Similar Coverage"}
+				</button>
+				
+				{showSimilar && (
+					<div className="mt-3 pl-4 border-l-2 border-blue-100 space-y-2">
+						{isLoadingSimilar ? (
+							<div className="text-sm text-gray-400 animate-pulse">Searching Google News for alternative sources...</div>
+						) : similarArticles.length > 0 ? (
+							<ul className="space-y-2">
+								{similarArticles.map((sim, i) => (
+									<li key={i} className="text-sm">
+										<a href={sim.sourceUrl} target="_blank" rel="noreferrer" className="text-gray-700 hover:text-blue-600 hover:underline line-clamp-1">
+											↳ {sim.title}
+										</a>
+									</li>
+								))}
+							</ul>
+						) : (
+							<div className="text-sm text-gray-400">No other coverage found for this specific topic.</div>
+						)}
+					</div>
+				)}
+			</div>
 
 			{/* Footer: Actions & Status */}
-			<div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+			<div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
 				<div className="text-sm font-medium text-gray-500">
 					Status:{" "}
 					<span
