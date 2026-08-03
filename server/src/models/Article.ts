@@ -6,6 +6,8 @@ export interface IArticle extends Document {
 	topicCategory: string;
 	summary: string[];
 	status: "PENDING" | "APPROVED" | "REJECTED";
+	postStatus: "PENDING" | "POSTED" | "NOT_POSTED";
+	assignedTo?: string; // Stores the email of the assigned writer
 	runDate: string; // Format: YYYY-MM-DD
 	createdAt: Date;
 	updatedAt: Date;
@@ -22,6 +24,12 @@ const ArticleSchema: Schema = new Schema(
 			enum: ["PENDING", "APPROVED", "REJECTED"],
 			default: "PENDING",
 		},
+		postStatus: {
+			type: String,
+			enum: ["PENDING", "POSTED", "NOT_POSTED"],
+			default: "PENDING",
+		},
+		assignedTo: { type: String, required: false },
 		runDate: { type: String, required: true, index: true },
 	},
 	{

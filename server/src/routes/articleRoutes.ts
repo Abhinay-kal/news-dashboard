@@ -3,6 +3,7 @@ import Article from "../models/Article";
 import * as cheerio from "cheerio";
 import Parser from "rss-parser";
 import { determineCategory, generateSummary } from "../services/summarizationService";
+import nodemailer from "nodemailer";
 
 const router = express.Router();
 
@@ -58,6 +59,138 @@ router.patch("/:id/status", async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error: "Server error updating status" });
+	}
+});
+
+/**
+ * PATCH /api/articles/:id/postStatus
+ * Updates the post status (PENDING, POSTED, NOT_POSTED) of a specific article.
+ */
+router.patch("/:id/postStatus", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { postStatus } = req.body;
+
+		if (!["PENDING", "POSTED", "NOT_POSTED"].includes(postStatus)) {
+			return res.status(400).json({ error: "Invalid post status" });
+		}
+
+		const updatedArticle = await Article.findByIdAndUpdate(
+			id,
+			{ postStatus },
+			{ new: true }
+		);
+
+		if (!updatedArticle) {
+			return res.status(404).json({ error: "Article not found" });
+		}
+
+		res.json(updatedArticle);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Server error updating post status" });
+	}
+});
+
+/**
+ * PATCH /api/articles/:id/assign
+ * Assigns an article to a specific writer's email.
+ */
+router.patch("/:id/assign", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { assignedTo } = req.body; // Expecting an email string or empty string to unassign
+
+		const updatedArticle = await Article.findByIdAndUpdate(
+			id,
+			{ assignedTo },
+			{ new: true }
+		);
+
+		if (!updatedArticle) {
+			return res.status(404).json({ error: "Article not found" });
+		}
+
+		res.json(updatedArticle);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Server error assigning article" });
+	}
+});
+
+/**
+ * POST /api/articles/:id/notify
+ * Sends an email to the assigned writer via Resend.
+ */
+router.post("/:id/notify", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const article = await Article.findById(id);
+		
+		if (!article) return res.status(404).json({ error: "Article not found" });
+		if (!article.assignedTo) return res.status(400).json({ error: "Article is not assigned to anyone" });
+
+		const emailText = `Please write an article about the following topic:
+
+Title: ${article.title}
+Source URL: ${article.sourceUrl}
+
+Key Points:
+${article.summary.map((p) => `- ${p}`).join("\n")}
+
+Thank you!`;
+
+		const emailHtml = `
+			<p>Please write an article about the following topic:</p>
+			<p><strong>Title:</strong> ${article.title}<br/>
+			<strong>Source URL:</strong> <a href="${article.sourceUrl}">${article.sourceUrl}</a></p>
+			<p><strong>Key Points:</strong></p>
+			<ul>
+				${article.summary.map((p) => `<li>${p}</li>`).join("")}
+			</ul>
+			<p>Thank you!</p>
+		`;
+
+		const transporter = nodemailer.createTransport({
+			service: "gmail",
+			auth: {
+				user: process.env.SMTP_EMAIL,
+				pass: process.env.SMTP_PASSWORD,
+			},
+		});
+
+		const info = await transporter.sendMail({
+			from: `"News Dashboard" <${process.env.SMTP_EMAIL}>`,
+			to: article.assignedTo,
+			subject: `New Article Assignment: ${article.title}`,
+			text: emailText,
+			html: emailHtml,
+		});
+
+		res.json({ message: "Email sent successfully", data: info });
+	} catch (error) {
+		console.error("[Nodemailer Error]:", error);
+		res.status(500).json({ error: "Server error sending email" });
+	}
+});
+
+/**
+ * DELETE /api/articles/:id
+ * Deletes an article from the database.
+ */
+router.delete("/:id", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deletedArticle = await Article.findByIdAndDelete(id);
+		
+		if (!deletedArticle) {
+			return res.status(404).json({ error: "Article not found" });
+		}
+
+		res.json({ message: "Article deleted successfully" });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Server error deleting article" });
 	}
 });
 

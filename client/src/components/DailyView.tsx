@@ -36,7 +36,7 @@ export default function DailyView() {
 			status,
 		}: {
 			id: string;
-			status: "APPROVED" | "REJECTED";
+			status: "APPROVED" | "REJECTED" | "PENDING";
 		}) => {
 			await axios.patch(`${API_URL}/articles/${id}/status`, { status });
 		},
@@ -44,6 +44,56 @@ export default function DailyView() {
 			// Invalidate the cache to trigger a refetch and update UI
 			queryClient.invalidateQueries({ queryKey: ["articles", runDate] });
 		},
+	});
+
+	// Mutation to update article post status
+	const updatePostStatusMutation = useMutation({
+		mutationFn: async ({
+			id,
+			postStatus,
+		}: {
+			id: string;
+			postStatus: "PENDING" | "POSTED" | "NOT_POSTED";
+		}) => {
+			await axios.patch(`${API_URL}/articles/${id}/postStatus`, { postStatus });
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["articles", runDate] });
+		},
+	});
+
+	// Mutation to delete an article
+	const deleteArticleMutation = useMutation({
+		mutationFn: async (id: string) => {
+			await axios.delete(`${API_URL}/articles/${id}`);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["articles", runDate] });
+		},
+	});
+
+	// Mutation to assign an article
+	const updateAssignMutation = useMutation({
+		mutationFn: async ({ id, assignedTo }: { id: string; assignedTo: string }) => {
+			await axios.patch(`${API_URL}/articles/${id}/assign`, { assignedTo });
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["articles", runDate] });
+		},
+	});
+
+	// Mutation to send email notification via Resend
+	const notifyWriterMutation = useMutation({
+		mutationFn: async (id: string) => {
+			await axios.post(`${API_URL}/articles/${id}/notify`);
+		},
+		onSuccess: () => {
+			alert("Email sent successfully!");
+		},
+		onError: (error: any) => {
+			console.error(error);
+			alert(`Failed to send email. Error: ${error?.response?.data?.error || error.message}`);
+		}
 	});
 
 	// Date Navigation Helpers
@@ -58,6 +108,25 @@ export default function DailyView() {
 		newStatus: "APPROVED" | "REJECTED" | "PENDING",
 	) => {
 		updateStatusMutation.mutate({ id, status: newStatus });
+	};
+
+	const handlePostStatusChange = (
+		id: string,
+		newStatus: "PENDING" | "POSTED" | "NOT_POSTED",
+	) => {
+		updatePostStatusMutation.mutate({ id, postStatus: newStatus });
+	};
+
+	const handleDelete = (id: string) => {
+		deleteArticleMutation.mutate(id);
+	};
+
+	const handleAssign = (id: string, assignedTo: string) => {
+		updateAssignMutation.mutate({ id, assignedTo });
+	};
+
+	const handleNotify = (id: string) => {
+		notifyWriterMutation.mutate(id);
 	};
 
 	const handleManualSubmit = async () => {
@@ -87,7 +156,7 @@ export default function DailyView() {
 			{/* Header and Date Navigation */}
 			<header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 gap-4 sm:gap-0">
 				<div>
-					<h1 className="text-2xl font-bold text-[#006a0a]">Daily Curation</h1>
+					<h1 className="text-2xl font-bold text-black">Daily Curation</h1>
 					<p className="text-gray-500 text-sm">
 						Reviewing articles for {runDate}
 					</p>
@@ -167,6 +236,10 @@ export default function DailyView() {
 						key={article._id}
 						article={article}
 						onStatusChange={handleStatusChange}
+						onPostStatusChange={handlePostStatusChange}
+						onDelete={handleDelete}
+						onAssign={handleAssign}
+						onNotify={handleNotify}
 					/>
 				))}
 			</div>

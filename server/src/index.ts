@@ -48,7 +48,7 @@ const checkMissedRun = async () => {
 		
 		// If the server starts and it is past 9 AM local time
 		if (now.getHours() >= 9) {
-			const count = await Article.countDocuments({ runDate: today });
+			const count = await Article.countDocuments({ runDate: today } as any);
 			if (count === 0) {
 				console.log("[Startup Check] Past 9 AM and no articles found for today. Running catch-up job!");
 				runWorker();
@@ -71,9 +71,8 @@ cron.schedule("0 9 * * *", () => {
 	console.log("[Cron] 9:00 AM reached.");
 	runWorker();
 }, {
-	scheduled: true,
 	timezone: "Asia/Kolkata"
-});
+} as any);
 
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);

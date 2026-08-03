@@ -1,0 +1,1 @@
+{"version":3,"file":"rssService.d.ts","sourceRoot":"","sources":["rssService.ts"],"names":[],"mappings":"AAIA,MAAM,WAAW,aAAa;IAC7B,KAAK,EAAE,MAAM,CAAC;IACd,SAAS,EAAE,MAAM,CAAC;IAClB,eAAe,EAAE,MAAM,CAAC;CACxB;AAED;;;GAGG;AACH,wBAAsB,YAAY,CAAC,OAAO,EAAE,MAAM,GAAG,OAAO,CAAC,aAAa,EAAE,CAAC,CAsB5E"}
