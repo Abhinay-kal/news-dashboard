@@ -9,6 +9,8 @@ export interface IArticle extends Document {
 	postStatus: "PENDING" | "POSTED" | "NOT_POSTED";
 	assignedTo?: string; // Stores the email of the assigned writer
 	runDate: string; // Format: YYYY-MM-DD
+	thumbnailUrl?: string; // For YouTube videos and other media
+	storyId?: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -31,6 +33,8 @@ const ArticleSchema: Schema = new Schema(
 		},
 		assignedTo: { type: String, required: false },
 		runDate: { type: String, required: true, index: true },
+		thumbnailUrl: { type: String, required: false },
+		storyId: { type: String },
 	},
 	{
 		timestamps: true, // Automatically manages createdAt and updatedAt

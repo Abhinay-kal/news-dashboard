@@ -1,5 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
-
+// Native fetch is used
 /**
  * CATEGORIZATION (Keyword Matching)
  * A fast, cost-free way to assign a general topic based on common keywords.
@@ -7,6 +6,9 @@ import { GoogleGenAI } from "@google/genai";
 export function determineCategory(text: string): string {
   const lowerText = text.toLowerCase();
   
+  if (lowerText.match(/\b(jee|neet|josaa|csab|nta|cbse|ncert|ugc|aicte|coaching|board exam|admission|counsell|counseling|scholarship|exam result|education ministry)\b/)) {
+    return 'Education';
+  }
   if (lowerText.match(/\b(ai|artificial intelligence|machine learning|llm|openai|google)\b/)) {
     return 'AI & Tech';
   }
@@ -39,8 +41,6 @@ export async function generateSummary(text: string): Promise<string[]> {
     ];
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   try {
     const prompt = `You are a professional news summarizer. Read the following text and extract the most important information into exactly 3 concise bullet points. 
     Return your response strictly as a raw JSON array of 3 strings. Do NOT wrap it in \`\`\`json markdown blocks, just return the raw array brackets [].
@@ -48,33 +48,40 @@ export async function generateSummary(text: string): Promise<string[]> {
     Text:
     ${text.substring(0, 6000)}`;
 
-    let response;
+    let responseJson: any;
     let retries = 3;
     
     while (retries > 0) {
       try {
-        // Sleep for 5 seconds to pace requests
         await new Promise(resolve => setTimeout(resolve, 5000));
         
-        response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash-lite',
-          contents: prompt,
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
         });
-        break; // Success!
-      } catch (err: any) {
-        if (err.status === 429 && retries > 1) {
-          console.log("[Summarization] Rate limit (429) hit. Pausing for 15 seconds...");
-          await new Promise(resolve => setTimeout(resolve, 15000));
-          retries--;
-        } else {
-          throw err;
+        
+        responseJson = await res.json();
+        
+        if (!res.ok) {
+          if (res.status === 429 && retries > 1) {
+            console.log("[Summarization] Rate limit (429) hit. Pausing for 15 seconds...");
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            retries--;
+            continue;
+          }
+          throw new Error(JSON.stringify(responseJson));
         }
+        break; 
+      } catch (err: any) {
+        if (retries === 1) throw err;
+        retries--;
       }
     }
 
-    const output = response?.text || "[]";
-    
-    // Clean potential markdown ticks if the model adds them anyway
+    const output = responseJson?.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
     const cleanOutput = output.replace(/```json/gi, '').replace(/```/g, '').trim();
     
     const parsed = JSON.parse(cleanOutput);
