@@ -136,7 +136,8 @@ function AppContent() {
 				try {
 					let ctx = audioCtxRef.current;
 					if (!ctx) {
-						ctx = new (window.AudioContext || window.webkitAudioContext)();
+						const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+						ctx = new AudioContextClass();
 						audioCtxRef.current = ctx;
 					}
 

@@ -3,6 +3,7 @@ export interface MonitoredPage {
 	name: string;
 	url: string;
 	path: string;
+	category?: "national" | "counselling";
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
 	lastInspected?: string;
@@ -22,6 +23,7 @@ export interface MonitoredSite {
 	name: string;
 	domain: string;
 	rootUrl: string;
+	category?: "national" | "counselling";
 	pages: MonitoredPage[];
 	isSample?: boolean;
 	lastInspected?: string;

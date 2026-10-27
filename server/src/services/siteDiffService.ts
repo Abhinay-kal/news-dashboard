@@ -42,6 +42,7 @@ export interface MonitoredPage {
 	name: string;
 	url: string;
 	path: string;
+	category?: "national" | "counselling";
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
 	lastInspected?: string;
@@ -61,10 +62,52 @@ export interface MonitoredSite {
 	name: string;
 	domain: string;
 	rootUrl: string;
+	category?: "national" | "counselling";
 	pages: MonitoredPage[];
 	isSample?: boolean;
 	lastInspected?: string;
 }
+
+export const OFFICIAL_TARGETS: Array<{ name: string; url: string; category: "national" | "counselling" }> = [
+	// 8 National Authorities
+	{ name: "CBSE", url: "https://www.cbse.gov.in/cbsenew/cbse.html", category: "national" },
+	{ name: "CSAB", url: "https://csab.nic.in/", category: "national" },
+	{ name: "JoSAA", url: "https://josaa.nic.in/", category: "national" },
+	{ name: "MCC", url: "https://mcc.nic.in/", category: "national" },
+	{ name: "NMC", url: "https://www.nmc.org.in/", category: "national" },
+	{ name: "NTA", url: "https://nta.ac.in/NoticeBoard", category: "national" },
+	{ name: "RBSE", url: "https://rajeduboard.rajasthan.gov.in/", category: "national" },
+	{ name: "UGC", url: "https://www.ugc.gov.in/", category: "national" },
+	// 29 State Counselling Portals
+	{ name: "Andhra Pradesh", url: "https://drntr.uhsap.in/index/", category: "counselling" },
+	{ name: "Arunachal Pradesh", url: "https://apdhte.nic.in/", category: "counselling" },
+	{ name: "Assam", url: "https://dme.assam.gov.in/", category: "counselling" },
+	{ name: "Bihar", url: "https://bceceboard.bihar.gov.in/", category: "counselling" },
+	{ name: "Chhattisgarh", url: "https://cgdme.in/", category: "counselling" },
+	{ name: "Goa", url: "https://dte.goa.gov.in/", category: "counselling" },
+	{ name: "Gujarat", url: "https://www.medadmgujarat.org/", category: "counselling" },
+	{ name: "Haryana", url: "https://dmer.haryana.gov.in/", category: "counselling" },
+	{ name: "Himachal Pradesh", url: "https://amruhp.ac.in/", category: "counselling" },
+	{ name: "Jharkhand", url: "https://jceceb.jharkhand.gov.in/", category: "counselling" },
+	{ name: "Karnataka", url: "https://cetonline.karnataka.gov.in/kea/", category: "counselling" },
+	{ name: "Kerala", url: "https://cee.kerala.gov.in/cee/index.php", category: "counselling" },
+	{ name: "Madhya Pradesh", url: "https://dme.mponline.gov.in/Portal/Services/DMEMP/DMEUG/Profile/ProfileLoginHome.aspx", category: "counselling" },
+	{ name: "Maharashtra", url: "https://cetcell.mahacet.org/", category: "counselling" },
+	{ name: "Manipur", url: "https://manipurhealthdirectorate.mn.gov.in/", category: "counselling" },
+	{ name: "Meghalaya", url: "https://www.meghealth.gov.in/", category: "counselling" },
+	{ name: "Mizoram", url: "https://dhte.mizoram.gov.in/", category: "counselling" },
+	{ name: "Nagaland", url: "https://dte.nagaland.gov.in/", category: "counselling" },
+	{ name: "Odisha", url: "https://ojee.nic.in/", category: "counselling" },
+	{ name: "Punjab", url: "https://bfuhs.ggsmch.org/", category: "counselling" },
+	{ name: "Rajasthan", url: "https://ug.neetrajasthan.com/home", category: "counselling" },
+	{ name: "Sikkim", url: "https://statequota.sikkim.gov.in/", category: "counselling" },
+	{ name: "Tamil Nadu", url: "https://tnmedicalselection.net/", category: "counselling" },
+	{ name: "Telangana", url: "https://www.knruhs.telangana.gov.in/", category: "counselling" },
+	{ name: "Tripura", url: "https://trmcc.admissions.nic.in/", category: "counselling" },
+	{ name: "Uttar Pradesh", url: "https://dgme.up.gov.in/", category: "counselling" },
+	{ name: "Uttarakhand", url: "https://www.hnbumu.ac.in/", category: "counselling" },
+	{ name: "West Bengal", url: "https://wbmcc.nic.in/", category: "counselling" },
+];
 
 const DATA_DIR = path.resolve(process.cwd(), "server/data");
 const MONITORS_FILE = path.join(DATA_DIR, "monitors.json");
@@ -372,6 +415,79 @@ export async function captureAllSites(): Promise<MonitoredSite[]> {
 	}
 	logger.info("[SiteDiff] Completed capture for all monitored sites.");
 	return getMonitoredSites();
+}
+
+/**
+ * Seed all 37 Indian Education & State Counselling Portals
+ */
+export function seedOfficialPortals(forceReset: boolean = false): MonitoredSite[] {
+	ensureDirs();
+	let sites = getMonitoredSites();
+	if (forceReset || sites.length === 0 || sites.every((s) => s.id === "example-com" || s.id === "stripe-com" || s.id === "news-ycombinator-com")) {
+		sites = [];
+		for (const target of OFFICIAL_TARGETS) {
+			try {
+				const parsed = new URL(target.url);
+				const domain = parsed.hostname.replace(/^www\./, "");
+				const pagePath = parsed.pathname + parsed.search;
+				const pageId = crypto.createHash("md5").update(target.url).digest("hex").slice(0, 10);
+				const siteId = target.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+				const page: MonitoredPage = {
+					id: pageId,
+					name: target.name,
+					url: target.url,
+					path: pagePath || "/",
+					category: target.category,
+					status: "idle",
+					diffPercent: 0,
+					diffPixels: 0,
+					hasChange: false,
+					isBlockedOrError: false,
+				};
+
+				sites.push({
+					id: siteId,
+					name: target.name,
+					domain,
+					rootUrl: `${parsed.protocol}//${parsed.host}/`,
+					category: target.category,
+					pages: [page],
+				});
+			} catch {
+				// Skip invalid
+			}
+		}
+		saveMonitoredSites(sites);
+		logger.info(`[SiteDiff] Pre-seeded ${sites.length} official national & state counselling portals.`);
+	}
+	return sites;
+}
+
+let isQueueRunning = false;
+/**
+ * Progressive background capture queue for all portals
+ */
+export async function startBackgroundCaptureQueue(): Promise<void> {
+	if (isQueueRunning) return;
+	isQueueRunning = true;
+	logger.info("[SiteDiff] Starting sequential background capture queue for all portals...");
+	const sites = getMonitoredSites();
+	for (const site of sites) {
+		for (const page of site.pages) {
+			if (!page.currentScreenshot || page.status === "error") {
+				try {
+					await capturePageDiff(site.id, page.id);
+					// Gentle 1.5s pause to prevent government IP blocking
+					await new Promise((resolve) => setTimeout(resolve, 1500));
+				} catch (err: any) {
+					logger.warn(`[SiteDiff Queue] Skipped ${page.name} (${page.url}): ${err.message}`);
+				}
+			}
+		}
+	}
+	isQueueRunning = false;
+	logger.info("[SiteDiff] Sequential background capture queue completed.");
 }
 
 /**

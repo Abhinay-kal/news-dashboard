@@ -6,6 +6,7 @@ import { sounds } from "../../utils/audioFeedback";
 import { isWithin24Hours } from "../../utils/timeUtils";
 
 type FilterTab = "all" | "unreviewed" | "inspected" | "quiet";
+type CategoryTab = "all" | "national" | "counselling";
 
 export const SiteMonitorDashboard: React.FC = () => {
 	const [sites, setSites] = useState<MonitoredSite[]>([]);
@@ -17,10 +18,12 @@ export const SiteMonitorDashboard: React.FC = () => {
 	const [nameInput, setNameInput] = useState("");
 	const [isAdding, setIsAdding] = useState(false);
 	const [isCheckingAll, setIsCheckingAll] = useState(false);
+	const [isSeeding, setIsSeeding] = useState(false);
 
 	// Filter & Search
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeFilterTab, setActiveFilterTab] = useState<FilterTab>("all");
+	const [categoryTab, setCategoryTab] = useState<CategoryTab>("all");
 
 	// Sound Muted State
 	const [isMuted, setIsMuted] = useState(sounds.isMuted());
@@ -120,7 +123,6 @@ export const SiteMonitorDashboard: React.FC = () => {
 			await fetch(`/api/monitor/${site.id}/pages/${page.id}/inspect`, {
 				method: "POST",
 			});
-			// Optimistically update local state
 			const now = new Date().toISOString();
 			setSites((prev) =>
 				prev.map((s) => {
@@ -133,7 +135,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 				})
 			);
 		} catch {
-			// Non-blocking error
+			// Non-blocking
 		}
 	};
 
@@ -186,6 +188,22 @@ export const SiteMonitorDashboard: React.FC = () => {
 		}
 	};
 
+	// Seed / Reset to all 37 Official National & State Portals
+	const handleSeedOfficial = async () => {
+		sounds.playClick();
+		setIsSeeding(true);
+		try {
+			const res = await fetch("/api/monitor/seed-official", { method: "POST" });
+			if (!res.ok) throw new Error("Failed to seed official portals");
+			sounds.playSuccess();
+			await fetchSites();
+		} catch (err: any) {
+			alert(`Error loading portals: ${err.message}`);
+		} finally {
+			setIsSeeding(false);
+		}
+	};
+
 	// Delete sub-page
 	const handleDeletePage = async (siteId: string, pageId: string) => {
 		try {
@@ -214,41 +232,6 @@ export const SiteMonitorDashboard: React.FC = () => {
 		}
 	};
 
-	// Load Sample Showcase for the Windows recipient
-	const handleLoadSamples = async () => {
-		sounds.playClick();
-		try {
-			await fetch("/api/monitor", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					url: "https://example.com",
-					name: "Example Portal",
-				}),
-			});
-			await fetch("/api/monitor", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					url: "https://example.com/notices",
-					name: "Public Notices",
-				}),
-			});
-			await fetch("/api/monitor", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					url: "https://example.com/pricing",
-					name: "Subscription Tiers",
-				}),
-			});
-			sounds.playSuccess();
-			await fetchSites();
-		} catch (err: any) {
-			alert(`Failed to load samples: ${err.message}`);
-		}
-	};
-
 	// Auto-domain detection for the paste input preview
 	let detectedDomain = "";
 	try {
@@ -256,11 +239,13 @@ export const SiteMonitorDashboard: React.FC = () => {
 			detectedDomain = new URL(urlInput.trim()).hostname;
 		}
 	} catch {
-		// Ignore invalid URL typing
+		// Ignore
 	}
 
-	// Calculate counts for filters
+	// Calculate counts
 	const totalPages = sites.reduce((sum, s) => sum + s.pages.length, 0);
+	const nationalCount = sites.filter((s) => s.category === "national").length;
+	const counsellingCount = sites.filter((s) => s.category === "counselling").length;
 	const unreviewedDiffsCount = sites.filter(
 		(s) => s.pages.some((p) => p.hasChange) && !isWithin24Hours(s.lastInspected)
 	).length;
@@ -269,6 +254,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 
 	// Filtered list
 	const filteredSites = sites.filter((site) => {
+		// Search filter
 		const matchesSearch =
 			site.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -280,6 +266,11 @@ export const SiteMonitorDashboard: React.FC = () => {
 
 		if (!matchesSearch) return false;
 
+		// Category tab filter
+		if (categoryTab === "national" && site.category !== "national") return false;
+		if (categoryTab === "counselling" && site.category !== "counselling") return false;
+
+		// Review status tab filter
 		const hasAnyChange = site.pages.some((p) => p.hasChange);
 		const isInspected24h = isWithin24Hours(site.lastInspected);
 
@@ -304,14 +295,14 @@ export const SiteMonitorDashboard: React.FC = () => {
 						<div className="flex items-center gap-2.5">
 							<span className="w-2.5 h-2.5 rounded-full bg-neutral-900 animate-pulse" />
 							<h1 className="text-xl font-bold tracking-tight text-neutral-900 m-0">
-								Site & Page Visual Diff Engine
+								Education & Counselling Portal Visual Diff Engine
 							</h1>
 							<span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200">
-								v1.3 Multi-Card Grid
+								{sites.length} Official Portals
 							</span>
 						</div>
 						<p className="text-xs text-neutral-500 mt-1">
-							Multi-card visual monitor • 24-hour review highlighting • Embedded curved branch trees.
+							National Examination Boards (CBSE, NTA, MCC, JoSAA) &amp; {counsellingCount} State Counselling Portals with 24-hour change tracking.
 						</p>
 					</div>
 
@@ -319,10 +310,11 @@ export const SiteMonitorDashboard: React.FC = () => {
 					<div className="flex items-center gap-2.5">
 						<div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200/60 text-xs font-mono">
 							<span className="font-semibold text-neutral-800">{sites.length}</span>
-							<span className="text-neutral-500">sites</span>
+							<span className="text-neutral-500">portals ({totalPages} paths)</span>
 							<span className="text-neutral-300">•</span>
-							<span className="font-semibold text-neutral-800">{totalPages}</span>
-							<span className="text-neutral-500">pages</span>
+							<span className="font-semibold text-blue-700">{nationalCount} national</span>
+							<span className="text-neutral-300">•</span>
+							<span className="font-semibold text-amber-700">{counsellingCount} state</span>
 							{unreviewedDiffsCount > 0 && (
 								<>
 									<span className="text-neutral-300">•</span>
@@ -366,7 +358,14 @@ export const SiteMonitorDashboard: React.FC = () => {
 				</div>
 			</div>
 
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-7">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-7 space-y-6">
+				{error && (
+					<div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
+						<span>{error}</span>
+						<button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-800 font-semibold cursor-pointer">✕</button>
+					</div>
+				)}
+
 				{/* Quick Add URL Banner */}
 				<div className="apple-card rounded-2xl p-5 border border-neutral-200/90 shadow-sm bg-white">
 					<form onSubmit={handleAddTarget} className="space-y-3">
@@ -374,7 +373,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 							<div className="flex-1 relative">
 								<input
 									type="text"
-									placeholder="Paste any URL e.g. https://example.com/notices or https://stripe.com/pricing"
+									placeholder="Paste any government notice URL (e.g. https://nta.ac.in/NoticeBoard or state counselling portal)"
 									value={urlInput}
 									onChange={(e) => setUrlInput(e.target.value)}
 									className="w-full text-xs sm:text-sm font-mono bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
@@ -389,7 +388,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 							<div className="w-full md:w-52">
 								<input
 									type="text"
-									placeholder="Label (Optional)"
+									placeholder="Portal Label (Optional)"
 									value={nameInput}
 									onChange={(e) => setNameInput(e.target.value)}
 									className="w-full text-xs sm:text-sm bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
@@ -422,29 +421,100 @@ export const SiteMonitorDashboard: React.FC = () => {
 
 						<div className="flex flex-wrap items-center justify-between text-xs text-neutral-500 pt-1">
 							<p>
-								💡 Multiple sites appear in a responsive multi-column row with hero preview and 24-hour review tracking.
+								💡 Sub-pages sharing the same domain branch underneath their parent card with curved rails.
 							</p>
-							{sites.length === 0 && (
-								<button
-									type="button"
-									onClick={handleLoadSamples}
-									className="text-neutral-700 underline font-medium hover:text-black cursor-pointer"
-								>
-									Load Sample Showcase Sites →
-								</button>
-							)}
+							<button
+								type="button"
+								onClick={handleSeedOfficial}
+								disabled={isSeeding}
+								className="text-neutral-700 underline font-medium hover:text-black cursor-pointer disabled:opacity-50"
+							>
+								{isSeeding ? "Seeding official portals..." : "Re-Seed All Official Portals →"}
+							</button>
 						</div>
 					</form>
 				</div>
 
-				{/* Toolbar / Search & Filter Pills */}
-				<div className="flex flex-wrap items-center justify-between gap-4">
+				{/* Primary Filter Toolbar */}
+				<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+					{/* Category Segmented Filter Tabs */}
+					<div className="flex items-center p-1 rounded-xl bg-neutral-200/60 border border-neutral-300/60 text-xs self-start">
+						<button
+							onClick={() => {
+								sounds.playClick();
+								setCategoryTab("all");
+							}}
+							className={`btn-tactile px-3.5 py-1.5 rounded-lg font-medium transition-all ${
+								categoryTab === "all"
+									? "bg-white text-neutral-900 shadow-2xs font-semibold"
+									: "text-neutral-600 hover:text-neutral-900"
+							}`}
+						>
+							All Portals ({sites.length})
+						</button>
+						<button
+							onClick={() => {
+								sounds.playClick();
+								setCategoryTab("national");
+							}}
+							className={`btn-tactile px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+								categoryTab === "national"
+									? "bg-blue-600 text-white font-semibold shadow-2xs"
+									: "text-neutral-600 hover:text-neutral-900"
+							}`}
+						>
+							<span>National Boards ({nationalCount})</span>
+						</button>
+						<button
+							onClick={() => {
+								sounds.playClick();
+								setCategoryTab("counselling");
+							}}
+							className={`btn-tactile px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+								categoryTab === "counselling"
+									? "bg-amber-600 text-white font-semibold shadow-2xs"
+									: "text-neutral-600 hover:text-neutral-900"
+							}`}
+						>
+							<span>State Counselling ({counsellingCount})</span>
+						</button>
+					</div>
+
+					{/* Right Action: Check All Portals */}
+					<div className="flex items-center gap-2">
+						<button
+							onClick={handleCheckAll}
+							disabled={isCheckingAll || sites.length === 0}
+							className="btn-tactile px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-40"
+						>
+							{isCheckingAll ? (
+								<>
+									<svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+										<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+									</svg>
+									<span>Checking All Portals...</span>
+								</>
+							) : (
+								<>
+									<svg className="w-3.5 h-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+									</svg>
+									<span>Check All Portals</span>
+								</>
+							)}
+						</button>
+					</div>
+				</div>
+
+				{/* Search & Review Status Pills */}
+				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="flex flex-wrap items-center gap-2 flex-1">
 						{/* Search Input */}
 						<div className="relative w-full sm:w-64">
 							<input
 								type="text"
-								placeholder="Search sites or sub-paths..."
+								placeholder="Search portal name or state..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								className="w-full text-xs bg-white border border-neutral-200/80 rounded-xl pl-9 pr-4 py-2 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
@@ -459,7 +529,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 							</svg>
 						</div>
 
-						{/* Segmented Filter Pills */}
+						{/* Segmented Review Status Filter Pills */}
 						<div className="flex items-center p-1 rounded-xl bg-neutral-100/90 border border-neutral-200/70 text-xs">
 							<button
 								onClick={() => {
@@ -472,7 +542,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 										: "text-neutral-600 hover:text-neutral-900"
 								}`}
 							>
-								All ({sites.length})
+								All Status ({sites.length})
 							</button>
 
 							<button
@@ -520,55 +590,30 @@ export const SiteMonitorDashboard: React.FC = () => {
 							</button>
 						</div>
 					</div>
-
-					{/* Right Action: Check All */}
-					<div className="flex items-center gap-2">
-						<button
-							onClick={handleCheckAll}
-							disabled={isCheckingAll || sites.length === 0}
-							className="btn-tactile px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-40"
-						>
-							{isCheckingAll ? (
-								<>
-									<svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-										<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-									</svg>
-									<span>Checking All...</span>
-								</>
-							) : (
-								<>
-									<svg className="w-3.5 h-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-									</svg>
-									<span>Check All Sites</span>
-								</>
-							)}
-						</button>
-					</div>
 				</div>
 
 				{/* Multi-Card Row Grid Layout */}
 				{loading ? (
 					<div className="apple-card rounded-2xl p-12 text-center text-neutral-400 font-mono text-sm">
-						Loading monitored sites...
+						Loading official education & state counselling portals...
 					</div>
 				) : filteredSites.length === 0 ? (
 					<div className="apple-card rounded-2xl p-12 text-center border-2 border-dashed border-neutral-200 bg-white">
 						<div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center mx-auto mb-3 text-xl">
-							🌐
+							🏛️
 						</div>
-						<h3 className="font-semibold text-neutral-900 text-base">No Matching Sites Found</h3>
+						<h3 className="font-semibold text-neutral-900 text-base">No Matching Portals Found</h3>
 						<p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 mb-5">
-							{searchQuery || activeFilterTab !== "all"
-								? "Try adjusting your search query or switching filter tabs."
-								: "Paste any website URL above to start monitoring visual pixel changes across multiple sites in a row."}
+							{searchQuery || activeFilterTab !== "all" || categoryTab !== "all"
+								? "Try switching category or review status tabs, or clearing your search."
+								: "Click below to seed all National & State Counselling portals."}
 						</p>
 						<button
-							onClick={handleLoadSamples}
-							className="btn-tactile px-4 py-2 rounded-xl text-xs font-semibold bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm cursor-pointer"
+							onClick={handleSeedOfficial}
+							disabled={isSeeding}
+							className="btn-tactile px-4 py-2 rounded-xl text-xs font-semibold bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm cursor-pointer disabled:opacity-50"
 						>
-							Load Sample Showcase Sites
+							{isSeeding ? "Seeding..." : "Seed All Official Portals"}
 						</button>
 					</div>
 				) : (

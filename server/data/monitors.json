@@ -1,129 +1,867 @@
 [
   {
-    "id": "example-com",
-    "name": "Example Portal",
-    "domain": "example.com",
-    "rootUrl": "https://example.com/",
+    "id": "cbse",
+    "name": "CBSE",
+    "domain": "cbse.gov.in",
+    "rootUrl": "https://www.cbse.gov.in/",
+    "category": "national",
     "pages": [
       {
-        "id": "182ccedb33",
-        "name": "Example Portal",
-        "url": "https://example.com/",
-        "path": "/",
-        "status": "idle",
-        "diffPercent": 8.3,
-        "diffPixels": 76674,
-        "hasChange": true,
-        "isBlockedOrError": false,
-        "errorMessage": "page.goto: Timeout 25000ms exceeded.\nCall log:\n  - navigating to \"https://example.com/\", waiting until \"domcontentloaded\"\n",
-        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
-        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "lastChecked": "2026-10-27T12:17:49.318Z",
-        "diffScreenshot": "/screenshots/monitors/182ccedb33_diff.png",
-        "lastInspected": "2026-10-27T12:29:18.205Z"
-      },
-      {
-        "id": "b0868a146f",
-        "name": "Public Notices",
-        "url": "https://example.com/notices",
-        "path": "/notices",
+        "id": "c73eeb05b4",
+        "name": "CBSE",
+        "url": "https://www.cbse.gov.in/cbsenew/cbse.html",
+        "path": "/cbsenew/cbse.html",
+        "category": "national",
         "status": "idle",
         "diffPercent": 0,
         "diffPixels": 0,
         "hasChange": false,
         "isBlockedOrError": false,
-        "baselineScreenshot": "/screenshots/monitors/b0868a146f_baseline.png",
-        "currentScreenshot": "/screenshots/monitors/b0868a146f.png",
-        "lastChecked": "2026-10-27T12:17:51.069Z",
-        "diffScreenshot": "/screenshots/monitors/b0868a146f_diff.png"
-      },
-      {
-        "id": "0e573830fa",
-        "name": "Subscription Tiers",
-        "url": "https://example.com/pricing",
-        "path": "/pricing",
-        "status": "idle",
-        "diffPercent": 0,
-        "diffPixels": 0,
-        "hasChange": false,
-        "isBlockedOrError": false,
-        "baselineScreenshot": "/screenshots/monitors/0e573830fa_baseline.png",
-        "currentScreenshot": "/screenshots/monitors/0e573830fa.png",
-        "lastChecked": "2026-10-27T12:17:52.751Z",
-        "diffScreenshot": "/screenshots/monitors/0e573830fa_diff.png"
+        "baselineScreenshot": "/screenshots/monitors/c73eeb05b4_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/c73eeb05b4.png",
+        "lastChecked": "2026-10-27T15:27:23.949Z",
+        "lastInspected": "2026-10-27T15:28:38.121Z"
       }
     ],
-    "lastInspected": "2026-10-27T12:29:18.205Z"
+    "lastInspected": "2026-10-27T15:28:38.121Z"
   },
   {
-    "id": "stripe-com",
-    "name": "Stripe Platform",
-    "domain": "stripe.com",
-    "rootUrl": "https://stripe.com/",
+    "id": "csab",
+    "name": "CSAB",
+    "domain": "csab.nic.in",
+    "rootUrl": "https://csab.nic.in/",
+    "category": "national",
     "pages": [
       {
-        "id": "b6a4002da9",
-        "name": "Stripe Platform",
-        "url": "https://stripe.com/",
+        "id": "2d900db913",
+        "name": "CSAB",
+        "url": "https://csab.nic.in/",
         "path": "/",
+        "category": "national",
         "status": "idle",
         "diffPercent": 0,
         "diffPixels": 0,
         "hasChange": false,
         "isBlockedOrError": false,
-        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
-        "lastChecked": "2026-10-27T12:26:56.159Z"
-      },
-      {
-        "id": "c9a85e7744",
-        "name": "Pricing Table",
-        "url": "https://stripe.com/pricing",
-        "path": "/pricing",
-        "status": "idle",
-        "diffPercent": 0,
-        "diffPixels": 0,
-        "hasChange": false,
-        "isBlockedOrError": false,
-        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
-        "lastChecked": "2026-10-27T12:26:56.164Z"
+        "baselineScreenshot": "/screenshots/monitors/2d900db913_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/2d900db913.png",
+        "lastChecked": "2026-10-27T15:27:29.321Z"
       }
     ]
   },
   {
-    "id": "news-ycombinator-com",
-    "name": "Hacker News",
-    "domain": "news.ycombinator.com",
-    "rootUrl": "https://news.ycombinator.com/",
+    "id": "josaa",
+    "name": "JoSAA",
+    "domain": "josaa.nic.in",
+    "rootUrl": "https://josaa.nic.in/",
+    "category": "national",
     "pages": [
       {
-        "id": "cbc580718e",
-        "name": "Hacker News",
-        "url": "https://news.ycombinator.com/",
+        "id": "29230be1d9",
+        "name": "JoSAA",
+        "url": "https://josaa.nic.in/",
         "path": "/",
+        "category": "national",
         "status": "idle",
         "diffPercent": 0,
         "diffPixels": 0,
         "hasChange": false,
         "isBlockedOrError": false,
-        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
-        "lastChecked": "2026-10-27T12:26:56.164Z"
-      },
+        "baselineScreenshot": "/screenshots/monitors/29230be1d9_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/29230be1d9.png",
+        "lastChecked": "2026-10-27T15:27:34.303Z"
+      }
+    ]
+  },
+  {
+    "id": "mcc",
+    "name": "MCC",
+    "domain": "mcc.nic.in",
+    "rootUrl": "https://mcc.nic.in/",
+    "category": "national",
+    "pages": [
       {
-        "id": "d751570154",
-        "name": "New Submissions",
-        "url": "https://news.ycombinator.com/newest",
-        "path": "/newest",
+        "id": "9838a76d3f",
+        "name": "MCC",
+        "url": "https://mcc.nic.in/",
+        "path": "/",
+        "category": "national",
         "status": "idle",
         "diffPercent": 0,
         "diffPixels": 0,
         "hasChange": false,
         "isBlockedOrError": false,
-        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
-        "lastChecked": "2026-10-27T12:26:56.164Z"
+        "baselineScreenshot": "/screenshots/monitors/9838a76d3f_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/9838a76d3f.png",
+        "lastChecked": "2026-10-27T15:27:37.260Z"
+      }
+    ]
+  },
+  {
+    "id": "nmc",
+    "name": "NMC",
+    "domain": "nmc.org.in",
+    "rootUrl": "https://www.nmc.org.in/",
+    "category": "national",
+    "pages": [
+      {
+        "id": "e5342e8ea0",
+        "name": "NMC",
+        "url": "https://www.nmc.org.in/",
+        "path": "/",
+        "category": "national",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/e5342e8ea0_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/e5342e8ea0.png",
+        "lastChecked": "2026-10-27T15:27:41.989Z"
+      }
+    ]
+  },
+  {
+    "id": "nta",
+    "name": "NTA",
+    "domain": "nta.ac.in",
+    "rootUrl": "https://nta.ac.in/",
+    "category": "national",
+    "pages": [
+      {
+        "id": "4b49539543",
+        "name": "NTA",
+        "url": "https://nta.ac.in/NoticeBoard",
+        "path": "/NoticeBoard",
+        "category": "national",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/4b49539543_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/4b49539543.png",
+        "lastChecked": "2026-10-27T15:27:45.138Z"
+      }
+    ]
+  },
+  {
+    "id": "rbse",
+    "name": "RBSE",
+    "domain": "rajeduboard.rajasthan.gov.in",
+    "rootUrl": "https://rajeduboard.rajasthan.gov.in/",
+    "category": "national",
+    "pages": [
+      {
+        "id": "f91c491715",
+        "name": "RBSE",
+        "url": "https://rajeduboard.rajasthan.gov.in/",
+        "path": "/",
+        "category": "national",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/f91c491715_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/f91c491715.png",
+        "lastChecked": "2026-10-27T15:27:48.798Z"
+      }
+    ]
+  },
+  {
+    "id": "ugc",
+    "name": "UGC",
+    "domain": "ugc.gov.in",
+    "rootUrl": "https://www.ugc.gov.in/",
+    "category": "national",
+    "pages": [
+      {
+        "id": "31595b0091",
+        "name": "UGC",
+        "url": "https://www.ugc.gov.in/",
+        "path": "/",
+        "category": "national",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/31595b0091_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/31595b0091.png",
+        "lastChecked": "2026-10-27T15:27:56.895Z"
+      }
+    ]
+  },
+  {
+    "id": "andhra-pradesh",
+    "name": "Andhra Pradesh",
+    "domain": "drntr.uhsap.in",
+    "rootUrl": "https://drntr.uhsap.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "bd1eb0ed16",
+        "name": "Andhra Pradesh",
+        "url": "https://drntr.uhsap.in/index/",
+        "path": "/index/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/bd1eb0ed16_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/bd1eb0ed16.png",
+        "lastChecked": "2026-10-27T15:28:12.778Z"
+      }
+    ]
+  },
+  {
+    "id": "arunachal-pradesh",
+    "name": "Arunachal Pradesh",
+    "domain": "apdhte.nic.in",
+    "rootUrl": "https://apdhte.nic.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "28d7f2ef4e",
+        "name": "Arunachal Pradesh",
+        "url": "https://apdhte.nic.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/28d7f2ef4e_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/28d7f2ef4e.png",
+        "lastChecked": "2026-10-27T15:28:18.310Z"
+      }
+    ]
+  },
+  {
+    "id": "assam",
+    "name": "Assam",
+    "domain": "dme.assam.gov.in",
+    "rootUrl": "https://dme.assam.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "546c828737",
+        "name": "Assam",
+        "url": "https://dme.assam.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/546c828737_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/546c828737.png",
+        "lastChecked": "2026-10-27T15:28:23.073Z"
+      }
+    ]
+  },
+  {
+    "id": "bihar",
+    "name": "Bihar",
+    "domain": "bceceboard.bihar.gov.in",
+    "rootUrl": "https://bceceboard.bihar.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "e7cbf6824c",
+        "name": "Bihar",
+        "url": "https://bceceboard.bihar.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/e7cbf6824c_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/e7cbf6824c.png",
+        "lastChecked": "2026-10-27T15:28:27.269Z"
+      }
+    ]
+  },
+  {
+    "id": "chhattisgarh",
+    "name": "Chhattisgarh",
+    "domain": "cgdme.in",
+    "rootUrl": "https://cgdme.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "dd34512186",
+        "name": "Chhattisgarh",
+        "url": "https://cgdme.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/dd34512186_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/dd34512186.png",
+        "lastChecked": "2026-10-27T15:28:33.104Z"
+      }
+    ]
+  },
+  {
+    "id": "goa",
+    "name": "Goa",
+    "domain": "dte.goa.gov.in",
+    "rootUrl": "https://dte.goa.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "9518c91efc",
+        "name": "Goa",
+        "url": "https://dte.goa.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/9518c91efc_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/9518c91efc.png",
+        "lastChecked": "2026-10-27T15:28:37.035Z"
+      }
+    ]
+  },
+  {
+    "id": "gujarat",
+    "name": "Gujarat",
+    "domain": "medadmgujarat.org",
+    "rootUrl": "https://www.medadmgujarat.org/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "4d42a2851a",
+        "name": "Gujarat",
+        "url": "https://www.medadmgujarat.org/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/4d42a2851a_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/4d42a2851a.png",
+        "lastChecked": "2026-10-27T15:28:41.513Z"
+      }
+    ]
+  },
+  {
+    "id": "haryana",
+    "name": "Haryana",
+    "domain": "dmer.haryana.gov.in",
+    "rootUrl": "https://dmer.haryana.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "483d488e0c",
+        "name": "Haryana",
+        "url": "https://dmer.haryana.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/483d488e0c_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/483d488e0c.png",
+        "lastChecked": "2026-10-27T15:28:49.275Z"
+      }
+    ]
+  },
+  {
+    "id": "himachal-pradesh",
+    "name": "Himachal Pradesh",
+    "domain": "amruhp.ac.in",
+    "rootUrl": "https://amruhp.ac.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "dd3fd10148",
+        "name": "Himachal Pradesh",
+        "url": "https://amruhp.ac.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/dd3fd10148_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/dd3fd10148.png",
+        "lastChecked": "2026-10-27T15:28:56.531Z"
+      }
+    ]
+  },
+  {
+    "id": "jharkhand",
+    "name": "Jharkhand",
+    "domain": "jceceb.jharkhand.gov.in",
+    "rootUrl": "https://jceceb.jharkhand.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "525d35a4e1",
+        "name": "Jharkhand",
+        "url": "https://jceceb.jharkhand.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/525d35a4e1_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/525d35a4e1.png",
+        "lastChecked": "2026-10-27T15:29:02.616Z"
+      }
+    ]
+  },
+  {
+    "id": "karnataka",
+    "name": "Karnataka",
+    "domain": "cetonline.karnataka.gov.in",
+    "rootUrl": "https://cetonline.karnataka.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "028d52004a",
+        "name": "Karnataka",
+        "url": "https://cetonline.karnataka.gov.in/kea/",
+        "path": "/kea/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/028d52004a_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/028d52004a.png",
+        "lastChecked": "2026-10-27T15:29:12.712Z"
+      }
+    ]
+  },
+  {
+    "id": "kerala",
+    "name": "Kerala",
+    "domain": "cee.kerala.gov.in",
+    "rootUrl": "https://cee.kerala.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "edd5cc1711",
+        "name": "Kerala",
+        "url": "https://cee.kerala.gov.in/cee/index.php",
+        "path": "/cee/index.php",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/edd5cc1711_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/edd5cc1711.png",
+        "lastChecked": "2026-10-27T15:29:18.880Z"
+      }
+    ]
+  },
+  {
+    "id": "madhya-pradesh",
+    "name": "Madhya Pradesh",
+    "domain": "dme.mponline.gov.in",
+    "rootUrl": "https://dme.mponline.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "a13f6dbd0b",
+        "name": "Madhya Pradesh",
+        "url": "https://dme.mponline.gov.in/Portal/Services/DMEMP/DMEUG/Profile/ProfileLoginHome.aspx",
+        "path": "/Portal/Services/DMEMP/DMEUG/Profile/ProfileLoginHome.aspx",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/a13f6dbd0b_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/a13f6dbd0b.png",
+        "lastChecked": "2026-10-27T15:29:27.754Z"
+      }
+    ]
+  },
+  {
+    "id": "maharashtra",
+    "name": "Maharashtra",
+    "domain": "cetcell.mahacet.org",
+    "rootUrl": "https://cetcell.mahacet.org/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "05c4da9352",
+        "name": "Maharashtra",
+        "url": "https://cetcell.mahacet.org/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/05c4da9352_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/05c4da9352.png",
+        "lastChecked": "2026-10-27T15:29:36.067Z"
+      }
+    ]
+  },
+  {
+    "id": "manipur",
+    "name": "Manipur",
+    "domain": "manipurhealthdirectorate.mn.gov.in",
+    "rootUrl": "https://manipurhealthdirectorate.mn.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "63272afeb7",
+        "name": "Manipur",
+        "url": "https://manipurhealthdirectorate.mn.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/63272afeb7_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/63272afeb7.png",
+        "lastChecked": "2026-10-27T15:29:40.822Z"
+      }
+    ]
+  },
+  {
+    "id": "meghalaya",
+    "name": "Meghalaya",
+    "domain": "meghealth.gov.in",
+    "rootUrl": "https://www.meghealth.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "5daf1fcde2",
+        "name": "Meghalaya",
+        "url": "https://www.meghealth.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/5daf1fcde2_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/5daf1fcde2.png",
+        "lastChecked": "2026-10-27T15:29:45.021Z"
+      }
+    ]
+  },
+  {
+    "id": "mizoram",
+    "name": "Mizoram",
+    "domain": "dhte.mizoram.gov.in",
+    "rootUrl": "https://dhte.mizoram.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "b24005a304",
+        "name": "Mizoram",
+        "url": "https://dhte.mizoram.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/b24005a304_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/b24005a304.png",
+        "lastChecked": "2026-10-27T15:29:50.945Z"
+      }
+    ]
+  },
+  {
+    "id": "nagaland",
+    "name": "Nagaland",
+    "domain": "dte.nagaland.gov.in",
+    "rootUrl": "https://dte.nagaland.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "ce18099ffc",
+        "name": "Nagaland",
+        "url": "https://dte.nagaland.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/ce18099ffc_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/ce18099ffc.png",
+        "lastChecked": "2026-10-27T15:30:12.582Z"
+      }
+    ]
+  },
+  {
+    "id": "odisha",
+    "name": "Odisha",
+    "domain": "ojee.nic.in",
+    "rootUrl": "https://ojee.nic.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "de51615b0d",
+        "name": "Odisha",
+        "url": "https://ojee.nic.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/de51615b0d_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/de51615b0d.png",
+        "lastChecked": "2026-10-27T15:30:20.585Z"
+      }
+    ]
+  },
+  {
+    "id": "punjab",
+    "name": "Punjab",
+    "domain": "bfuhs.ggsmch.org",
+    "rootUrl": "https://bfuhs.ggsmch.org/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "970a242b0e",
+        "name": "Punjab",
+        "url": "https://bfuhs.ggsmch.org/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/970a242b0e_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/970a242b0e.png",
+        "lastChecked": "2026-10-27T15:30:28.401Z"
+      }
+    ]
+  },
+  {
+    "id": "rajasthan",
+    "name": "Rajasthan",
+    "domain": "ug.neetrajasthan.com",
+    "rootUrl": "https://ug.neetrajasthan.com/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "9c41df9ae9",
+        "name": "Rajasthan",
+        "url": "https://ug.neetrajasthan.com/home",
+        "path": "/home",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/9c41df9ae9_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/9c41df9ae9.png",
+        "lastChecked": "2026-10-27T15:30:36.045Z"
+      }
+    ]
+  },
+  {
+    "id": "sikkim",
+    "name": "Sikkim",
+    "domain": "statequota.sikkim.gov.in",
+    "rootUrl": "https://statequota.sikkim.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "289dbdda37",
+        "name": "Sikkim",
+        "url": "https://statequota.sikkim.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/289dbdda37_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/289dbdda37.png",
+        "lastChecked": "2026-10-27T15:30:41.556Z"
+      }
+    ]
+  },
+  {
+    "id": "tamil-nadu",
+    "name": "Tamil Nadu",
+    "domain": "tnmedicalselection.net",
+    "rootUrl": "https://tnmedicalselection.net/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "ae9348d5a6",
+        "name": "Tamil Nadu",
+        "url": "https://tnmedicalselection.net/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/ae9348d5a6_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/ae9348d5a6.png",
+        "lastChecked": "2026-10-27T15:30:55.386Z"
+      }
+    ]
+  },
+  {
+    "id": "telangana",
+    "name": "Telangana",
+    "domain": "knruhs.telangana.gov.in",
+    "rootUrl": "https://www.knruhs.telangana.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "0ad3450e9b",
+        "name": "Telangana",
+        "url": "https://www.knruhs.telangana.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/0ad3450e9b_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/0ad3450e9b.png",
+        "lastChecked": "2026-10-27T15:31:18.895Z"
+      }
+    ]
+  },
+  {
+    "id": "tripura",
+    "name": "Tripura",
+    "domain": "trmcc.admissions.nic.in",
+    "rootUrl": "https://trmcc.admissions.nic.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "5f6878b273",
+        "name": "Tripura",
+        "url": "https://trmcc.admissions.nic.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/5f6878b273_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/5f6878b273.png",
+        "lastChecked": "2026-10-27T15:31:24.747Z"
+      }
+    ]
+  },
+  {
+    "id": "uttar-pradesh",
+    "name": "Uttar Pradesh",
+    "domain": "dgme.up.gov.in",
+    "rootUrl": "https://dgme.up.gov.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "0a5cacf006",
+        "name": "Uttar Pradesh",
+        "url": "https://dgme.up.gov.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/0a5cacf006_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/0a5cacf006.png",
+        "lastChecked": "2026-10-27T15:31:46.661Z"
+      }
+    ]
+  },
+  {
+    "id": "uttarakhand",
+    "name": "Uttarakhand",
+    "domain": "hnbumu.ac.in",
+    "rootUrl": "https://www.hnbumu.ac.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "9dd9e877b5",
+        "name": "Uttarakhand",
+        "url": "https://www.hnbumu.ac.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/9dd9e877b5_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/9dd9e877b5.png",
+        "lastChecked": "2026-10-27T15:31:51.951Z"
+      }
+    ]
+  },
+  {
+    "id": "west-bengal",
+    "name": "West Bengal",
+    "domain": "wbmcc.nic.in",
+    "rootUrl": "https://wbmcc.nic.in/",
+    "category": "counselling",
+    "pages": [
+      {
+        "id": "b6d30d445c",
+        "name": "West Bengal",
+        "url": "https://wbmcc.nic.in/",
+        "path": "/",
+        "category": "counselling",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "baselineScreenshot": "/screenshots/monitors/b6d30d445c_baseline.png",
+        "currentScreenshot": "/screenshots/monitors/b6d30d445c.png",
+        "lastChecked": "2026-10-27T15:31:59.543Z"
       }
     ]
   }

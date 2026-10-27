@@ -12,6 +12,8 @@ import {
 	captureSite,
 	captureAllSites,
 	markInspected,
+	seedOfficialPortals,
+	startBackgroundCaptureQueue,
 	initSiteDiffScheduler,
 } from "./services/siteDiffService.ts";
 import logger from "./utils/logger.ts";
@@ -146,6 +148,15 @@ const server = http.createServer(async (req, res) => {
 			return;
 		}
 
+		// POST /api/monitor/seed-official
+		if (method === "POST" && pathname === "/api/monitor/seed-official") {
+			const sites = seedOfficialPortals(true);
+			startBackgroundCaptureQueue().catch(() => {});
+			res.writeHead(200, { "Content-Type": "application/json" });
+			res.end(JSON.stringify(sites));
+			return;
+		}
+
 		// Route matching for /api/monitor/:siteId...
 		const pageCheckMatch = pathname.match(/^\/api\/monitor\/([^/]+)\/pages\/([^/]+)\/check$/);
 		if (method === "POST" && pageCheckMatch) {
@@ -218,7 +229,8 @@ const server = http.createServer(async (req, res) => {
 	}
 });
 
-// Initialize background capture scheduler
+// Initialize official portals & background capture scheduler
+seedOfficialPortals(false);
 initSiteDiffScheduler();
 
 server.listen(PORT, () => {
