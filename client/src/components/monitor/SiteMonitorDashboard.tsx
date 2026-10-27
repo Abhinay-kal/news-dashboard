@@ -3,6 +3,9 @@ import type { MonitoredSite, MonitoredPage } from "./types";
 import { SiteHierarchyCard } from "./SiteHierarchyCard";
 import { PageDiffInspectorModal } from "./PageDiffInspectorModal";
 import { sounds } from "../../utils/audioFeedback";
+import { isWithin24Hours } from "../../utils/timeUtils";
+
+type FilterTab = "all" | "unreviewed" | "inspected" | "quiet";
 
 export const SiteMonitorDashboard: React.FC = () => {
 	const [sites, setSites] = useState<MonitoredSite[]>([]);
@@ -17,7 +20,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 
 	// Filter & Search
 	const [searchQuery, setSearchQuery] = useState("");
-	const [filterChangedOnly, setFilterChangedOnly] = useState(false);
+	const [activeFilterTab, setActiveFilterTab] = useState<FilterTab>("all");
 
 	// Sound Muted State
 	const [isMuted, setIsMuted] = useState(sounds.isMuted());
@@ -108,6 +111,32 @@ export const SiteMonitorDashboard: React.FC = () => {
 		}
 	};
 
+	// Mark site/page as inspected (recording 24h review timestamp)
+	const handleMarkInspected = async (site: MonitoredSite, page: MonitoredPage) => {
+		sounds.playClick();
+		setInspectingItem({ site, page });
+
+		try {
+			await fetch(`/api/monitor/${site.id}/pages/${page.id}/inspect`, {
+				method: "POST",
+			});
+			// Optimistically update local state
+			const now = new Date().toISOString();
+			setSites((prev) =>
+				prev.map((s) => {
+					if (s.id !== site.id) return s;
+					return {
+						...s,
+						lastInspected: now,
+						pages: s.pages.map((p) => (p.id === page.id ? { ...p, lastInspected: now } : p)),
+					};
+				})
+			);
+		} catch {
+			// Non-blocking error
+		}
+	};
+
 	// Recheck single page
 	const handleCheckPage = async (siteId: string, pageId: string) => {
 		try {
@@ -185,17 +214,16 @@ export const SiteMonitorDashboard: React.FC = () => {
 		}
 	};
 
-	// Load Sample Showcase for the Windows user
+	// Load Sample Showcase for the Windows recipient
 	const handleLoadSamples = async () => {
 		sounds.playClick();
 		try {
-			// Add sample targets
 			await fetch("/api/monitor", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					url: "https://example.com",
-					name: "Example Domain Showcase",
+					name: "Example Portal",
 				}),
 			});
 			await fetch("/api/monitor", {
@@ -231,32 +259,47 @@ export const SiteMonitorDashboard: React.FC = () => {
 		// Ignore invalid URL typing
 	}
 
+	// Calculate counts for filters
+	const totalPages = sites.reduce((sum, s) => sum + s.pages.length, 0);
+	const unreviewedDiffsCount = sites.filter(
+		(s) => s.pages.some((p) => p.hasChange) && !isWithin24Hours(s.lastInspected)
+	).length;
+	const inspectedIn24hCount = sites.filter((s) => isWithin24Hours(s.lastInspected)).length;
+	const quietSitesCount = sites.filter((s) => !s.pages.some((p) => p.hasChange)).length;
+
 	// Filtered list
 	const filteredSites = sites.filter((site) => {
 		const matchesSearch =
 			site.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			site.pages.some((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.path.toLowerCase().includes(searchQuery.toLowerCase()));
+			site.pages.some(
+				(p) =>
+					p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					p.path.toLowerCase().includes(searchQuery.toLowerCase())
+			);
 
 		if (!matchesSearch) return false;
-		if (filterChangedOnly) {
-			return site.pages.some((p) => p.hasChange);
+
+		const hasAnyChange = site.pages.some((p) => p.hasChange);
+		const isInspected24h = isWithin24Hours(site.lastInspected);
+
+		if (activeFilterTab === "unreviewed") {
+			return hasAnyChange && !isInspected24h;
+		}
+		if (activeFilterTab === "inspected") {
+			return isInspected24h;
+		}
+		if (activeFilterTab === "quiet") {
+			return !hasAnyChange;
 		}
 		return true;
 	});
 
-	// Totals
-	const totalPages = sites.reduce((sum, s) => sum + s.pages.length, 0);
-	const totalChanged = sites.reduce(
-		(sum, s) => sum + s.pages.filter((p) => p.hasChange).length,
-		0
-	);
-
 	return (
-		<div className="min-h-screen bg-[#fbfbfd] text-neutral-900 pb-20">
-			{/* Top Hero Header Bar */}
+		<div className="min-h-screen bg-[#fbfbfd] text-neutral-900 pb-24">
+			{/* Top Hero Sticky Bar */}
 			<div className="border-b border-neutral-200/80 bg-white/80 backdrop-blur-xl sticky top-16 z-40">
-				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2.5">
 							<span className="w-2.5 h-2.5 rounded-full bg-neutral-900 animate-pulse" />
@@ -264,26 +307,36 @@ export const SiteMonitorDashboard: React.FC = () => {
 								Site & Page Visual Diff Engine
 							</h1>
 							<span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200">
-								v1.2 Studio Craft
+								v1.3 Multi-Card Grid
 							</span>
 						</div>
 						<p className="text-xs text-neutral-500 mt-1">
-							Hierarchical per-site page diffing with pixel highlighting, branch rails, and clip-path comparisons.
+							Multi-card visual monitor • 24-hour review highlighting • Embedded curved branch trees.
 						</p>
 					</div>
 
 					{/* Right Quick Stats & Sound Toggle */}
 					<div className="flex items-center gap-2.5">
-						<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200/60 text-xs font-mono">
+						<div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200/60 text-xs font-mono">
 							<span className="font-semibold text-neutral-800">{sites.length}</span>
 							<span className="text-neutral-500">sites</span>
 							<span className="text-neutral-300">•</span>
 							<span className="font-semibold text-neutral-800">{totalPages}</span>
 							<span className="text-neutral-500">pages</span>
-							{totalChanged > 0 && (
+							{unreviewedDiffsCount > 0 && (
 								<>
 									<span className="text-neutral-300">•</span>
-									<span className="font-bold text-rose-600 animate-pulse">{totalChanged} changed</span>
+									<span className="font-bold text-rose-600 animate-pulse">
+										{unreviewedDiffsCount} unreviewed
+									</span>
+								</>
+							)}
+							{inspectedIn24hCount > 0 && (
+								<>
+									<span className="text-neutral-300">•</span>
+									<span className="font-semibold text-indigo-600">
+										{inspectedIn24hCount} reviewed
+									</span>
 								</>
 							)}
 						</div>
@@ -313,10 +366,10 @@ export const SiteMonitorDashboard: React.FC = () => {
 				</div>
 			</div>
 
-			<div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 space-y-8">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 space-y-7">
 				{/* Quick Add URL Banner */}
-				<div className="apple-card rounded-2xl p-6 border border-neutral-200/90 shadow-sm bg-white">
-					<form onSubmit={handleAddTarget} className="space-y-4">
+				<div className="apple-card rounded-2xl p-5 border border-neutral-200/90 shadow-sm bg-white">
+					<form onSubmit={handleAddTarget} className="space-y-3">
 						<div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
 							<div className="flex-1 relative">
 								<input
@@ -324,29 +377,29 @@ export const SiteMonitorDashboard: React.FC = () => {
 									placeholder="Paste any URL e.g. https://example.com/notices or https://stripe.com/pricing"
 									value={urlInput}
 									onChange={(e) => setUrlInput(e.target.value)}
-									className="w-full text-sm font-mono bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
+									className="w-full text-xs sm:text-sm font-mono bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
 								/>
 								{detectedDomain && (
-									<div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-neutral-200/80 text-neutral-700 text-[11px] font-mono">
+									<div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-neutral-200/80 text-neutral-700 text-[10px] font-mono">
 										branches into {detectedDomain}
 									</div>
 								)}
 							</div>
 
-							<div className="w-full md:w-56">
+							<div className="w-full md:w-52">
 								<input
 									type="text"
 									placeholder="Label (Optional)"
 									value={nameInput}
 									onChange={(e) => setNameInput(e.target.value)}
-									className="w-full text-sm bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
+									className="w-full text-xs sm:text-sm bg-neutral-50/70 border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:bg-white transition-all"
 								/>
 							</div>
 
 							<button
 								type="submit"
 								disabled={isAdding || !urlInput.trim()}
-								className="btn-tactile px-6 py-3 rounded-xl text-sm font-semibold bg-neutral-900 hover:bg-neutral-800 text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+								className="btn-tactile px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-neutral-900 hover:bg-neutral-800 text-white shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
 							>
 								{isAdding ? (
 									<>
@@ -369,7 +422,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 
 						<div className="flex flex-wrap items-center justify-between text-xs text-neutral-500 pt-1">
 							<p>
-								💡 Sub-pages sharing the same domain automatically branch underneath their parent card with curved rails.
+								💡 Multiple sites appear in a responsive multi-column row with hero preview and 24-hour review tracking.
 							</p>
 							{sites.length === 0 && (
 								<button
@@ -384,13 +437,14 @@ export const SiteMonitorDashboard: React.FC = () => {
 					</form>
 				</div>
 
-				{/* Toolbar / Search & Filters */}
+				{/* Toolbar / Search & Filter Pills */}
 				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-2.5 flex-1 max-w-md">
-						<div className="relative w-full">
+					<div className="flex flex-wrap items-center gap-2 flex-1">
+						{/* Search Input */}
+						<div className="relative w-full sm:w-64">
 							<input
 								type="text"
-								placeholder="Search sites, sub-paths, or labels..."
+								placeholder="Search sites or sub-paths..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								className="w-full text-xs bg-white border border-neutral-200/80 rounded-xl pl-9 pr-4 py-2 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
@@ -405,27 +459,74 @@ export const SiteMonitorDashboard: React.FC = () => {
 							</svg>
 						</div>
 
-						<button
-							onClick={() => {
-								sounds.playTap();
-								setFilterChangedOnly(!filterChangedOnly);
-							}}
-							className={`btn-tactile px-3 py-2 rounded-xl text-xs font-medium border flex items-center gap-1.5 shrink-0 cursor-pointer ${
-								filterChangedOnly
-									? "bg-rose-50 text-rose-700 border-rose-300 font-semibold"
-									: "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
-							}`}
-						>
-							<span className={`w-2 h-2 rounded-full ${filterChangedOnly ? "bg-rose-500" : "bg-neutral-300"}`} />
-							<span>Changed Only</span>
-						</button>
+						{/* Segmented Filter Pills */}
+						<div className="flex items-center p-1 rounded-xl bg-neutral-100/90 border border-neutral-200/70 text-xs">
+							<button
+								onClick={() => {
+									sounds.playClick();
+									setActiveFilterTab("all");
+								}}
+								className={`btn-tactile px-3 py-1.5 rounded-lg font-medium transition-all ${
+									activeFilterTab === "all"
+										? "bg-white text-neutral-900 shadow-2xs font-semibold"
+										: "text-neutral-600 hover:text-neutral-900"
+								}`}
+							>
+								All ({sites.length})
+							</button>
+
+							<button
+								onClick={() => {
+									sounds.playClick();
+									setActiveFilterTab("unreviewed");
+								}}
+								className={`btn-tactile px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+									activeFilterTab === "unreviewed"
+										? "bg-rose-50 text-rose-700 border border-rose-200 font-bold shadow-2xs"
+										: "text-neutral-600 hover:text-neutral-900"
+								}`}
+							>
+								<span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+								<span>Needs Review ({unreviewedDiffsCount})</span>
+							</button>
+
+							<button
+								onClick={() => {
+									sounds.playClick();
+									setActiveFilterTab("inspected");
+								}}
+								className={`btn-tactile px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+									activeFilterTab === "inspected"
+										? "bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold shadow-2xs"
+										: "text-neutral-600 hover:text-neutral-900"
+								}`}
+							>
+								<span>✓</span>
+								<span>Reviewed 24h ({inspectedIn24hCount})</span>
+							</button>
+
+							<button
+								onClick={() => {
+									sounds.playClick();
+									setActiveFilterTab("quiet");
+								}}
+								className={`btn-tactile px-3 py-1.5 rounded-lg font-medium transition-all ${
+									activeFilterTab === "quiet"
+										? "bg-white text-neutral-900 shadow-2xs font-semibold"
+										: "text-neutral-600 hover:text-neutral-900"
+								}`}
+							>
+								Quiet ({quietSitesCount})
+							</button>
+						</div>
 					</div>
 
+					{/* Right Action: Check All */}
 					<div className="flex items-center gap-2">
 						<button
 							onClick={handleCheckAll}
 							disabled={isCheckingAll || sites.length === 0}
-							className="btn-tactile px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-40"
+							className="btn-tactile px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 shadow-2xs flex items-center gap-2 cursor-pointer disabled:opacity-40"
 						>
 							{isCheckingAll ? (
 								<>
@@ -447,7 +548,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Sites Hierarchy Cards Grid */}
+				{/* Multi-Card Row Grid Layout */}
 				{loading ? (
 					<div className="apple-card rounded-2xl p-12 text-center text-neutral-400 font-mono text-sm">
 						Loading monitored sites...
@@ -457,9 +558,11 @@ export const SiteMonitorDashboard: React.FC = () => {
 						<div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center mx-auto mb-3 text-xl">
 							🌐
 						</div>
-						<h3 className="font-semibold text-neutral-900 text-base">No Monitored Sites Found</h3>
+						<h3 className="font-semibold text-neutral-900 text-base">No Matching Sites Found</h3>
 						<p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 mb-5">
-							Paste any website or webpage URL above to start tracking visual pixel changes with automatic tree branching.
+							{searchQuery || activeFilterTab !== "all"
+								? "Try adjusting your search query or switching filter tabs."
+								: "Paste any website URL above to start monitoring visual pixel changes across multiple sites in a row."}
 						</p>
 						<button
 							onClick={handleLoadSamples}
@@ -469,7 +572,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 						</button>
 					</div>
 				) : (
-					<div className="space-y-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
 						{filteredSites.map((site) => (
 							<SiteHierarchyCard
 								key={site.id}
@@ -478,7 +581,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 								onCheckPage={handleCheckPage}
 								onDeleteSite={handleDeleteSite}
 								onDeletePage={handleDeletePage}
-								onInspectPage={(s, p) => setInspectingItem({ site: s, page: p })}
+								onInspectPage={handleMarkInspected}
 								onAddSubPage={handleAddSubPage}
 							/>
 						))}
@@ -486,7 +589,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 				)}
 			</div>
 
-			{/* Inspector Modal */}
+			{/* Full Diff Inspector Modal */}
 			{inspectingItem && (
 				<PageDiffInspectorModal
 					site={inspectingItem.site}

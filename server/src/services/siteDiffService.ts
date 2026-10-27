@@ -44,6 +44,7 @@ export interface MonitoredPage {
 	path: string;
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
+	lastInspected?: string;
 	diffPercent: number;
 	diffPixels: number;
 	hasChange: boolean;
@@ -62,6 +63,7 @@ export interface MonitoredSite {
 	rootUrl: string;
 	pages: MonitoredPage[];
 	isSample?: boolean;
+	lastInspected?: string;
 }
 
 const DATA_DIR = path.resolve(process.cwd(), "server/data");
@@ -186,6 +188,32 @@ export function deleteSite(siteId: string): boolean {
 	sites = sites.filter((s) => s.id !== siteId);
 	saveMonitoredSites(sites);
 	return sites.length < prevLen;
+}
+
+/**
+ * Mark a site or page as inspected with current timestamp
+ */
+export function markInspected(siteId: string, pageId?: string): { site: MonitoredSite | null; page?: MonitoredPage | null } {
+	const sites = getMonitoredSites();
+	const site = sites.find((s) => s.id === siteId);
+	if (!site) return { site: null };
+
+	const now = new Date().toISOString();
+	site.lastInspected = now;
+
+	let inspectedPage: MonitoredPage | undefined;
+	if (pageId) {
+		inspectedPage = site.pages.find((p) => p.id === pageId);
+		if (inspectedPage) {
+			inspectedPage.lastInspected = now;
+		}
+	} else if (site.pages.length > 0) {
+		site.pages[0].lastInspected = now;
+		inspectedPage = site.pages[0];
+	}
+
+	saveMonitoredSites(sites);
+	return { site, page: inspectedPage };
 }
 
 /**

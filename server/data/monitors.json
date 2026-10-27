@@ -11,14 +11,16 @@
         "url": "https://example.com/",
         "path": "/",
         "status": "idle",
-        "diffPercent": 0,
-        "diffPixels": 0,
-        "hasChange": false,
+        "diffPercent": 8.3,
+        "diffPixels": 76674,
+        "hasChange": true,
         "isBlockedOrError": false,
         "errorMessage": "page.goto: Timeout 25000ms exceeded.\nCall log:\n  - navigating to \"https://example.com/\", waiting until \"domcontentloaded\"\n",
         "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
         "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
-        "lastChecked": "2026-10-27T05:17:55.698Z"
+        "lastChecked": "2026-10-27T12:17:49.318Z",
+        "diffScreenshot": "/screenshots/monitors/182ccedb33_diff.png",
+        "lastInspected": "2026-10-27T12:29:18.205Z"
       },
       {
         "id": "b0868a146f",
@@ -32,7 +34,8 @@
         "isBlockedOrError": false,
         "baselineScreenshot": "/screenshots/monitors/b0868a146f_baseline.png",
         "currentScreenshot": "/screenshots/monitors/b0868a146f.png",
-        "lastChecked": "2026-10-27T05:18:08.974Z"
+        "lastChecked": "2026-10-27T12:17:51.069Z",
+        "diffScreenshot": "/screenshots/monitors/b0868a146f_diff.png"
       },
       {
         "id": "0e573830fa",
@@ -40,14 +43,87 @@
         "url": "https://example.com/pricing",
         "path": "/pricing",
         "status": "idle",
-        "diffPercent": 5.9,
-        "diffPixels": 54458,
-        "hasChange": true,
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
         "isBlockedOrError": false,
         "baselineScreenshot": "/screenshots/monitors/0e573830fa_baseline.png",
         "currentScreenshot": "/screenshots/monitors/0e573830fa.png",
-        "lastChecked": "2026-10-27T05:18:10.693Z",
+        "lastChecked": "2026-10-27T12:17:52.751Z",
         "diffScreenshot": "/screenshots/monitors/0e573830fa_diff.png"
+      }
+    ],
+    "lastInspected": "2026-10-27T12:29:18.205Z"
+  },
+  {
+    "id": "stripe-com",
+    "name": "Stripe Platform",
+    "domain": "stripe.com",
+    "rootUrl": "https://stripe.com/",
+    "pages": [
+      {
+        "id": "b6a4002da9",
+        "name": "Stripe Platform",
+        "url": "https://stripe.com/",
+        "path": "/",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
+        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
+        "lastChecked": "2026-10-27T12:26:56.159Z"
+      },
+      {
+        "id": "c9a85e7744",
+        "name": "Pricing Table",
+        "url": "https://stripe.com/pricing",
+        "path": "/pricing",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
+        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
+        "lastChecked": "2026-10-27T12:26:56.164Z"
+      }
+    ]
+  },
+  {
+    "id": "news-ycombinator-com",
+    "name": "Hacker News",
+    "domain": "news.ycombinator.com",
+    "rootUrl": "https://news.ycombinator.com/",
+    "pages": [
+      {
+        "id": "cbc580718e",
+        "name": "Hacker News",
+        "url": "https://news.ycombinator.com/",
+        "path": "/",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
+        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
+        "lastChecked": "2026-10-27T12:26:56.164Z"
+      },
+      {
+        "id": "d751570154",
+        "name": "New Submissions",
+        "url": "https://news.ycombinator.com/newest",
+        "path": "/newest",
+        "status": "idle",
+        "diffPercent": 0,
+        "diffPixels": 0,
+        "hasChange": false,
+        "isBlockedOrError": false,
+        "currentScreenshot": "/screenshots/monitors/182ccedb33.png",
+        "baselineScreenshot": "/screenshots/monitors/182ccedb33_baseline.png",
+        "lastChecked": "2026-10-27T12:26:56.164Z"
       }
     ]
   }

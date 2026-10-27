@@ -5,6 +5,7 @@ export interface MonitoredPage {
 	path: string;
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
+	lastInspected?: string;
 	diffPercent: number;
 	diffPixels: number;
 	hasChange: boolean;
@@ -23,4 +24,5 @@ export interface MonitoredSite {
 	rootUrl: string;
 	pages: MonitoredPage[];
 	isSample?: boolean;
+	lastInspected?: string;
 }

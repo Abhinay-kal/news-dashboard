@@ -11,6 +11,7 @@ import {
 	capturePageDiff,
 	captureSite,
 	captureAllSites,
+	markInspected,
 	initSiteDiffScheduler,
 } from "./services/siteDiffService.ts";
 import logger from "./utils/logger.ts";
@@ -161,6 +162,24 @@ const server = http.createServer(async (req, res) => {
 			const site = await captureSite(siteId!);
 			res.writeHead(200, { "Content-Type": "application/json" });
 			res.end(JSON.stringify(site));
+			return;
+		}
+
+		const pageInspectMatch = pathname.match(/^\/api\/monitor\/([^/]+)\/pages\/([^/]+)\/inspect$/);
+		if (method === "POST" && pageInspectMatch) {
+			const [, siteId, pageId] = pageInspectMatch;
+			const resData = markInspected(siteId!, pageId!);
+			res.writeHead(200, { "Content-Type": "application/json" });
+			res.end(JSON.stringify(resData));
+			return;
+		}
+
+		const siteInspectMatch = pathname.match(/^\/api\/monitor\/([^/]+)\/inspect$/);
+		if (method === "POST" && siteInspectMatch) {
+			const [, siteId] = siteInspectMatch;
+			const resData = markInspected(siteId!);
+			res.writeHead(200, { "Content-Type": "application/json" });
+			res.end(JSON.stringify(resData));
 			return;
 		}
 
