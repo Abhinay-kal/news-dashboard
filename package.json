@@ -4,6 +4,11 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
+		"monitor": "node scripts/start-monitor.js",
+		"setup": "npm install && npm install --prefix client && npm install --prefix server && npx playwright install chromium",
+		"dev": "npm run dev --prefix server & npm run worker --prefix server & npm run dev --prefix client",
+		"sleep": "bash scripts/sleep.sh",
+		"resume": "bash scripts/resume.sh",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
