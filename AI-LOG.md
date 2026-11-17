@@ -1,3 +1,11 @@
+## 2026-11-17 14:45 | Antigravity | Fix failing scraping jobs and embed BullMQ worker lifecycle
+- Changed: server/src/worker.ts, server/src/index.ts
+- Why: Scraping jobs failed because worker was never launched on restart, jobs stalled due to 30s lock limits, and SearXNG was blocked by Cloudflare anti-bot captcha.
+- Verify: Ran POST /api/scrape-and-email and verified worker actively processes Google News feeds via GET /api/refresh/status.
+- Undo: git revert cb60226
+- Risks/unknown: None; SearXNG was fully broken and Google News search covers all keywords cleanly.
+- Git: branch bugfix/scraping-worker-searxng, commit cb60226
+
 ## 2026-11-17 10:36 | Antigravity | Synchronize site diff monitor, NEET scraper engine, and UI components
 - Changed: client UI components, server scrapers/diff service, monitors config, .gitignore, scripts
 - Why: Allow pulling and running news dashboard seamlessly across devices without platform binary churn
