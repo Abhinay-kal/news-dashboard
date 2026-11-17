@@ -47,13 +47,6 @@ function generateFeedUrls(keyword: string, category: string) {
 		category,
 		keyword,
 	});
-
-	// 2. SearXNG Footprint Discovery
-	RSS_FEEDS.push({
-		url: `https://searx.be/search?q=${encoded}&format=rss`,
-		category,
-		keyword,
-	});
 }
 
 // Iterate through all categories in our feeds.json and build the master array
@@ -290,22 +283,40 @@ async function runScrapingJob(job: Job) {
 	}
 }
 
-// Initialize BullMQ Worker
-const scrapingWorker = new Worker(
-	"scrapingQueue",
-	async (job) => {
-		logger.info(`[Worker] Picked up job ${job.id}. Initiating scrape...`);
-		await runScrapingJob(job);
-	},
-	{ connection },
-);
+// Initialize BullMQ Worker with extended lock duration and auto-renewal to prevent stalled job errors
+let scrapingWorker: Worker | null = null;
 
-scrapingWorker.on("completed", (job) => {
-	logger.info(`[Worker] Job ${job.id} completed successfully`);
-});
+export function initScrapingWorker(): Worker {
+	if (scrapingWorker) return scrapingWorker;
 
-scrapingWorker.on("failed", (job, err) => {
-	logger.error({ err }, `[Worker] Job ${job?.id} failed`);
-});
+	scrapingWorker = new Worker(
+		"scrapingQueue",
+		async (job) => {
+			logger.info(`[Worker] Picked up job ${job.id}. Initiating scrape...`);
+			await runScrapingJob(job);
+		},
+		{
+			connection,
+			lockDuration: 300000, // 5 minutes to prevent premature job stalling
+			lockRenewTime: 60000, // renew lock every minute
+			stalledInterval: 60000,
+			maxStalledCount: 3,
+		},
+	);
 
-logger.info("[Worker] Listening for jobs on scrapingQueue...");
+	scrapingWorker.on("completed", (job) => {
+		logger.info(`[Worker] Job ${job.id} completed successfully`);
+	});
+
+	scrapingWorker.on("failed", (job, err) => {
+		logger.error({ err }, `[Worker] Job ${job?.id} failed`);
+	});
+
+	logger.info("[Worker] Listening for jobs on scrapingQueue...");
+	return scrapingWorker;
+}
+
+// Auto-start if invoked directly via CLI (e.g. npx ts-node src/worker.ts)
+if (require.main === module) {
+	initScrapingWorker();
+}
