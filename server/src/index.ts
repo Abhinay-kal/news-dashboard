@@ -30,6 +30,8 @@ import { runNeetMonitoringJob } from "./services/neetOrchestrator";
 logger.info("Loaded neetOrchestrator");
 import { triggerScrapeJob, getScrapingStatus } from "./services/queueService";
 logger.info("Loaded queueService");
+import { initScrapingWorker } from "./worker";
+logger.info("Loaded scrapingWorker");
 import neetRoutes from "./routes/neetRoutes";
 import healthRoutes from "./routes/healthRoutes";
 import monitorRoutes from "./routes/monitorRoutes";
@@ -244,6 +246,9 @@ app.get("/api/test-alert", (req, res) => {
 	});
 	res.json({ success: true, message: "Test alert fired!", title });
 });
+
+// Initialize embedded BullMQ worker to consume scraping jobs
+initScrapingWorker();
 
 server.listen(PORT, () => {
 	logger.info(`Server running on port ${PORT}`);
