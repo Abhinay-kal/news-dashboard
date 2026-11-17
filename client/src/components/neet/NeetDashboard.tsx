@@ -27,7 +27,7 @@ export default function NeetDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await fetch('http://localhost:5001/api/neet/states');
+                const response = await fetch('/api/neet/states');
                 if (response.ok) {
                     const data = await response.json();
                     setStates(data.states);

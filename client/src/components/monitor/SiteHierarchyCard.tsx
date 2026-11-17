@@ -326,6 +326,11 @@ export const SiteHierarchyCard: React.FC<SiteHierarchyCardProps> = ({
 								State Portal
 							</span>
 						)}
+						{site.category === "iit" && (
+							<span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200/80 font-semibold text-[10px] uppercase tracking-wider">
+								IIT Institute
+							</span>
+						)}
 
 						{siteInspectedIn24h ? (
 							<span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium text-[11px] flex items-center gap-1">

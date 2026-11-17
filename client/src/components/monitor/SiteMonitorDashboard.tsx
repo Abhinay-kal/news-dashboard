@@ -6,7 +6,7 @@ import { sounds } from "../../utils/audioFeedback";
 import { isWithin24Hours } from "../../utils/timeUtils";
 
 type FilterTab = "all" | "unreviewed" | "inspected" | "quiet";
-type CategoryTab = "all" | "national" | "counselling";
+type CategoryTab = "all" | "national" | "counselling" | "iit";
 
 export const SiteMonitorDashboard: React.FC = () => {
 	const [sites, setSites] = useState<MonitoredSite[]>([]);
@@ -246,6 +246,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 	const totalPages = sites.reduce((sum, s) => sum + s.pages.length, 0);
 	const nationalCount = sites.filter((s) => s.category === "national").length;
 	const counsellingCount = sites.filter((s) => s.category === "counselling").length;
+	const iitCount = sites.filter((s) => s.category === "iit").length;
 	const unreviewedDiffsCount = sites.filter(
 		(s) => s.pages.some((p) => p.hasChange) && !isWithin24Hours(s.lastInspected)
 	).length;
@@ -269,6 +270,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 		// Category tab filter
 		if (categoryTab === "national" && site.category !== "national") return false;
 		if (categoryTab === "counselling" && site.category !== "counselling") return false;
+		if (categoryTab === "iit" && site.category !== "iit") return false;
 
 		// Review status tab filter
 		const hasAnyChange = site.pages.some((p) => p.hasChange);
@@ -290,11 +292,11 @@ export const SiteMonitorDashboard: React.FC = () => {
 		<div className="min-h-screen bg-[#fbfbfd] text-neutral-900 pb-24">
 			{/* Top Hero Sticky Bar */}
 			<div className="border-b border-neutral-200/80 bg-white/80 backdrop-blur-xl sticky top-16 z-40">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+				<div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-2.5">
 							<span className="w-2.5 h-2.5 rounded-full bg-neutral-900 animate-pulse" />
-							<h1 className="text-xl font-bold tracking-tight text-neutral-900 m-0">
+							<h1 className="text-xl font-bold tracking-tight text-neutral-900 m-0" style={{ color: "#171717" }}>
 								Education & Counselling Portal Visual Diff Engine
 							</h1>
 							<span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-neutral-100 text-neutral-600 border border-neutral-200">
@@ -358,7 +360,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 				</div>
 			</div>
 
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 pt-7 space-y-6">
+			<div className="max-w-[1720px] mx-auto px-4 sm:px-6 pt-7 space-y-6">
 				{error && (
 					<div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
 						<span>{error}</span>
@@ -477,6 +479,19 @@ export const SiteMonitorDashboard: React.FC = () => {
 							}`}
 						>
 							<span>State Counselling ({counsellingCount})</span>
+						</button>
+						<button
+							onClick={() => {
+								sounds.playClick();
+								setCategoryTab("iit");
+							}}
+							className={`btn-tactile px-3.5 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+								categoryTab === "iit"
+									? "bg-purple-600 text-white font-semibold shadow-2xs"
+									: "text-neutral-600 hover:text-neutral-900"
+							}`}
+						>
+							<span>IIT Portals ({iitCount})</span>
 						</button>
 					</div>
 
@@ -617,7 +632,7 @@ export const SiteMonitorDashboard: React.FC = () => {
 						</button>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
 						{filteredSites.map((site) => (
 							<SiteHierarchyCard
 								key={site.id}

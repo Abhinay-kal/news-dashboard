@@ -3,13 +3,14 @@ export interface MonitoredPage {
 	name: string;
 	url: string;
 	path: string;
-	category?: "national" | "counselling";
+	category?: "national" | "counselling" | "iit";
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
 	lastInspected?: string;
 	diffPercent: number;
 	diffPixels: number;
 	hasChange: boolean;
+	isCosmeticOnly?: boolean;
 	isBlockedOrError: boolean;
 	errorMessage?: string;
 	currentScreenshot?: string;
@@ -23,7 +24,7 @@ export interface MonitoredSite {
 	name: string;
 	domain: string;
 	rootUrl: string;
-	category?: "national" | "counselling";
+	category?: "national" | "counselling" | "iit";
 	pages: MonitoredPage[];
 	isSample?: boolean;
 	lastInspected?: string;

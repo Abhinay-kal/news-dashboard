@@ -8,10 +8,10 @@ import AdminReviewQueue from "./components/neet/AdminReviewQueue";
 import { SiteMonitorDashboard } from "./components/monitor/SiteMonitorDashboard";
 import "./App.css";
 
-const socket = io("http://localhost:5001");
+const socket = io();
 
 interface Alert {
-	id: number;
+	id: string;
 	title: string;
 	message: string;
 	url: string;
@@ -23,7 +23,7 @@ function Navigation() {
     
     return (
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
@@ -85,8 +85,12 @@ function AppContent() {
 	const [alerts, setAlerts] = useState<Alert[]>([]);
 	const audioCtxRef = useRef<AudioContext | null>(null);
 
-	const dismissAlert = (id: number) => {
+	const dismissAlert = (id: string) => {
 		setAlerts(prev => prev.filter(a => a.id !== id));
+	};
+
+	const dismissAllAlerts = () => {
+		setAlerts([]);
 	};
 
 	useEffect(() => {
@@ -105,17 +109,25 @@ function AppContent() {
 			}
 
 			socket.on("high-priority-alert", (data) => {
-				// 1. In-page toast banner (works in ALL browsers, any tab state)
+				// Generate guaranteed unique ID to prevent React key reconciler collisions
+				const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 				const newAlert: Alert = {
-					id: Date.now(),
+					id: uniqueId,
 					title: data.title,
 					message: data.message,
 					url: data.url,
 				};
-				setAlerts(prev => [newAlert, ...prev]);
+
+				setAlerts(prev => {
+					// Prevent duplicate toast if an alert with identical URL & title is already active
+					if (prev.some(a => a.url === data.url && a.title === data.title)) {
+						return prev;
+					}
+					return [newAlert, ...prev];
+				});
 
 				// Auto-dismiss after 30 seconds
-				setTimeout(() => dismissAlert(newAlert.id), 30000);
+				setTimeout(() => dismissAlert(uniqueId), 30000);
 
 				// 2. Native browser notification (best-effort, may fail in Firefox)
 				try {
@@ -188,42 +200,75 @@ function AppContent() {
 		};
 	}, []);
 
+	const visibleAlerts = alerts.slice(0, 4);
+
 	return (
 		<div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col">
             <Navigation />
-			{/* P0 Alert Toast Stack — fixed top-right, always visible */}
-			<div className="fixed top-20 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full">
-				{alerts.map(alert => (
-					<div
-						key={alert.id}
-						className="bg-red-600 text-white rounded-xl shadow-2xl p-4 flex flex-col gap-2 border-2 border-red-400 animate-pulse"
-						style={{ animation: "pulse 1s ease-in-out 3" }}
-					>
-						<div className="flex items-start justify-between gap-2">
-							<div className="flex items-center gap-2">
-								<span className="text-2xl">🚨</span>
-								<span className="font-bold text-sm uppercase tracking-wide">P0 Critical Alert</span>
+			{/* P0 Alert Toast Stack — fixed top-20 right-4, capped at 4 items with Dismiss All */}
+			{alerts.length > 0 && (
+				<div className="fixed top-20 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-auto">
+					{alerts.length > 1 && (
+						<div className="bg-neutral-900/95 backdrop-blur text-white px-3.5 py-2 rounded-xl shadow-lg border border-neutral-700 flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-2">
+							<div className="flex items-center gap-1.5 font-semibold">
+								<span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+								<span>{alerts.length} Critical Alerts</span>
+								{alerts.length > 4 && (
+									<span className="bg-red-950 text-red-300 px-1.5 py-0.5 rounded text-[10px] font-bold">
+										+{alerts.length - 4} more
+									</span>
+								)}
 							</div>
 							<button
-								onClick={() => dismissAlert(alert.id)}
-								className="text-red-200 hover:text-white text-lg font-bold leading-none shrink-0 cursor-pointer"
+								type="button"
+								onClick={dismissAllAlerts}
+								className="text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 font-semibold px-2.5 py-1 rounded-md transition-colors cursor-pointer text-[11px]"
 							>
-								✕
+								Dismiss All
 							</button>
 						</div>
-						<p className="font-semibold text-sm leading-snug">{alert.title}</p>
-						<p className="text-red-100 text-xs leading-relaxed">{alert.message}</p>
-						<a
-							href={alert.url}
-							target="_blank"
-							rel="noreferrer"
-							className="mt-1 text-xs bg-white text-red-700 font-bold px-3 py-1.5 rounded-lg hover:bg-red-50 text-center transition-colors"
+					)}
+					{visibleAlerts.map(alert => (
+						<div
+							key={alert.id}
+							className="bg-red-600 text-white rounded-xl shadow-2xl p-4 flex flex-col gap-2 border-2 border-red-400 animate-pulse relative"
+							style={{ animation: "pulse 1.2s ease-in-out 3" }}
 						>
-							Read Full Article →
-						</a>
-					</div>
-				))}
-			</div>
+							<div className="flex items-start justify-between gap-2">
+								<div className="flex items-center gap-2">
+									<span className="text-xl">🚨</span>
+									<span className="font-bold text-xs uppercase tracking-wider">P0 Critical Alert</span>
+								</div>
+								<button
+									type="button"
+									aria-label="Dismiss alert"
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										dismissAlert(alert.id);
+									}}
+									className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-700/60 hover:bg-red-800 active:bg-red-900 text-white transition-all cursor-pointer shrink-0 -mr-1 -mt-1 shadow-sm"
+								>
+									<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</button>
+							</div>
+							<p className="font-bold text-sm leading-snug">{alert.title}</p>
+							<p className="text-red-100 text-xs leading-relaxed line-clamp-3">{alert.message}</p>
+							<a
+								href={alert.url}
+								target="_blank"
+								rel="noreferrer"
+								className="mt-1 text-xs bg-white text-red-700 font-bold px-3 py-1.5 rounded-lg hover:bg-red-50 text-center transition-colors shadow-sm"
+							>
+								Read Full Article →
+							</a>
+						</div>
+					))}
+				</div>
+			)}
 
             {/* Main Content Area */}
             <main className="flex-1 w-full relative">

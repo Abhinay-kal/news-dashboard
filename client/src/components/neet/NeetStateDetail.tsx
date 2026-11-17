@@ -46,7 +46,7 @@ export default function NeetStateDetail({ stateId, onBack }: { stateId?: string,
         const fetchStateDetail = async () => {
             if (!effectiveStateId) return;
             try {
-                const response = await fetch(`http://localhost:5001/api/neet/states/${effectiveStateId}/timeline`);
+                const response = await fetch(`/api/neet/states/${effectiveStateId}/timeline`);
                 if (response.ok) {
                     const json = await response.json();
                     setData(json);

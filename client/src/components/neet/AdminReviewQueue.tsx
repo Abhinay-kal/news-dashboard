@@ -6,7 +6,7 @@ export default function AdminReviewQueue() {
 
     const fetchQueue = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/neet/admin/queue');
+            const res = await fetch('/api/neet/admin/queue');
             if (res.ok) {
                 const data = await res.json();
                 setQueue(data);
@@ -24,7 +24,7 @@ export default function AdminReviewQueue() {
 
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {
-            const res = await fetch(`http://localhost:5001/api/neet/admin/queue/${id}/${action}`, {
+            const res = await fetch(`/api/neet/admin/queue/${id}/${action}`, {
                 method: 'POST'
             });
             if (res.ok) {
