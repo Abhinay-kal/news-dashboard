@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model State {
+  id                      String                 @id @default(uuid()) 
+  name                    String                 @unique 
+  type                    String                  // STATE, UT, CENTRAL
+  counsellingAuthorities  CounsellingAuthority[]
+  historicalCutoffs       HistoricalCutoff[]
+
+  @@map("states")
+}
+
+model CounsellingAuthority {
+  id               String             @id @default(uuid()) 
+  stateId          String             
+  name             String             
+  primaryWebsite   String?            
+  portalWebsite    String?            
+  noticeSelector   String?            
+  state            State              @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  counsellingCycles CounsellingCycle[]
+
+  @@map("counselling_authorities")
+}
+
+model CounsellingCycle {
+  id                 String             @id @default(uuid()) 
+  authorityId        String             
+  year               Int
+  currentStatus      String             
+  statusValidation   String             @default("UNKNOWN") 
+  authority          CounsellingAuthority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  counsellingRounds  CounsellingRound[]
+  statusHistory      StatusHistory[]
+  manualReviewQueue  ManualReviewQueue[]
+
+  @@unique([authorityId, year])
+  @@index([currentStatus])
+  @@map("counselling_cycles")
+}
+
+model CounsellingRound {
+  id          String             @id @default(uuid()) 
+  cycleId     String             
+  roundName   String             
+  isActive    Boolean            @default(false)
+  cycle       CounsellingCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  schedules   Schedule[]
+
+  @@unique([cycleId, roundName])
+  @@map("counselling_rounds")
+}
+
+model Schedule {
+  id          String             @id @default(uuid()) 
+  roundId     String             
+  eventType   String             
+  eventDate   DateTime?          
+  isTentative Boolean            @default(false)
+  round       CounsellingRound   @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@map("schedules")
+}
+
+model Source {
+  id           String             @id @default(uuid()) 
+  url          String             
+  sourceType   String?            
+  confidence   String?            
+  contentHash  String?            
+  publishedAt  DateTime?          
+  detectedAt   DateTime?          @default(now()) 
+  statusHistory StatusHistory[]
+  manualReviewQueue ManualReviewQueue[]
+
+  @@index([url])
+  @@map("sources")
+}
+
+model StatusHistory {
+  id           String             @id @default(uuid()) 
+  cycleId      String             
+  statusBefore String?            
+  statusAfter  String             
+  sourceId     String?            
+  changedAt    DateTime?          @default(now()) 
+  reason       String?
+  cycle        CounsellingCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  source       Source?            @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([cycleId])
+  @@map("status_history")
+}
+
+// TASK 5: Historical Cutoff Data
+model HistoricalCutoff {
+  id           String   @id @default(uuid()) 
+  stateId      String   
+  year         Int
+  category     String    // e.g., General, OBC, SC, ST
+  roundNumber  Int
+  closingRank  Int
+  closingScore Int?
+  state        State    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@index([stateId, year])
+  @@map("historical_cutoffs")
+}
+
+// TASK 1: Admin Approval Dashboard Queue
+model ManualReviewQueue {
+  id             String           @id @default(uuid()) 
+  cycleId        String           
+  sourceId       String           
+  proposedStatus String           
+  currentStatus  String           
+  conflictReason String
+  status         String           @default("PENDING")  // PENDING, APPROVED, REJECTED
+  createdAt      DateTime         @default(now()) 
+  
+  cycle          CounsellingCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  source         Source           @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("manual_review_queue")
+}

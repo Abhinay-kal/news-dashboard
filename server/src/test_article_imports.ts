@@ -1,0 +1,13 @@
+console.log("Start");
+import "express"; console.log("express");
+import "./models/Article"; console.log("Article");
+import "cheerio"; console.log("cheerio");
+import "rss-parser"; console.log("rss-parser");
+import "./services/summarizationService"; console.log("summarizationService");
+import "./services/categorizationService"; console.log("categorizationService");
+import "./services/sentimentService"; console.log("sentimentService");
+import "nodemailer"; console.log("nodemailer");
+import "ioredis"; console.log("ioredis");
+import "./utils/logger"; console.log("logger");
+import "zod"; console.log("zod");
+import "./middleware/validate"; console.log("validate");
