@@ -2,7 +2,10 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import type { Page } from "playwright";
-import logger from "../utils/logger.ts";
+import { chromium } from "playwright";
+import { PNG } from "pngjs";
+import pixelmatch from "pixelmatch";
+import logger from "../utils/logger";
 
 export async function enableAxiosRouteFulfillment(page: Page) {
 	await page.route("**/*", async (route) => {
@@ -42,13 +45,15 @@ export interface MonitoredPage {
 	name: string;
 	url: string;
 	path: string;
-	category?: "national" | "counselling";
+	category?: "national" | "counselling" | "iit";
 	status: "idle" | "capturing" | "error";
 	lastChecked?: string;
 	lastInspected?: string;
 	diffPercent: number;
 	diffPixels: number;
 	hasChange: boolean;
+	isCosmeticOnly?: boolean;
+	lastKnownLinks?: Array<{ text: string; href: string }>;
 	isBlockedOrError: boolean;
 	errorMessage?: string;
 	currentScreenshot?: string;
@@ -62,30 +67,48 @@ export interface MonitoredSite {
 	name: string;
 	domain: string;
 	rootUrl: string;
-	category?: "national" | "counselling";
+	category?: "national" | "counselling" | "iit";
 	pages: MonitoredPage[];
 	isSample?: boolean;
 	lastInspected?: string;
 }
 
-export const OFFICIAL_TARGETS: Array<{ name: string; url: string; category: "national" | "counselling" }> = [
-	// 8 National Authorities
-	{ name: "CBSE", url: "https://www.cbse.gov.in/cbsenew/cbse.html", category: "national" },
-	{ name: "CSAB", url: "https://csab.nic.in/", category: "national" },
-	{ name: "JoSAA", url: "https://josaa.nic.in/", category: "national" },
-	{ name: "MCC", url: "https://mcc.nic.in/", category: "national" },
-	{ name: "NMC", url: "https://www.nmc.org.in/", category: "national" },
-	{ name: "NTA", url: "https://nta.ac.in/NoticeBoard", category: "national" },
-	{ name: "RBSE", url: "https://rajeduboard.rajasthan.gov.in/", category: "national" },
-	{ name: "UGC", url: "https://www.ugc.gov.in/", category: "national" },
+export const OFFICIAL_TARGETS: Array<{
+	name: string;
+	url: string;
+	category: "national" | "counselling" | "iit";
+	siteId?: string;
+	siteName?: string;
+}> = [
+	// National Authorities & CBSE Central
+	{ name: "CBSE Main Portal", url: "https://www.cbse.gov.in/cbsenew/circulars.html", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Results", url: "https://www.cbse.gov.in/cbsenew/cbse.html", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Pariksha Sangam", url: "https://parikshasangam.cbse.gov.in/ps", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Saras", url: "https://saras.cbse.gov.in/SARAS/Login/AffFirst", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Academic", url: "https://cbseacademic.nic.in/circulars.html", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Skill Education", url: "https://skilleducation.cbseit.in/", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CBSE Training", url: "https://training.cbseit.in/ET/frmlisting", category: "national", siteId: "cbse", siteName: "CBSE" },
+	{ name: "CSAB", url: "https://csab.nic.in/notices/", category: "national" },
+	{ name: "JoSAA", url: "https://josaa.nic.in/notices/", category: "national" },
+	{ name: "MCC", url: "https://mcc.nic.in/ug-medical-counselling/", category: "national" },
+	{ name: "NMC", url: "https://nmc.org.in/whats-new", category: "national" },
+	{ name: "NTA", url: "https://nta.ac.in/", category: "national" },
+	{ name: "JEE Main (NTA)", url: "https://jeemain.nta.nic.in/public-notices/", category: "national" },
+	{ name: "JEE Advanced", url: "https://jeeadv.ac.in/", category: "national" },
+	{ name: "NEET UG (NTA)", url: "https://neet.nta.nic.in/public-notices/", category: "national" },
+	{ name: "DigiLocker Results", url: "https://results.digilocker.gov.in/", category: "national" },
+	{ name: "Raj Shala Darpan", url: "https://rajshaladarpan.rajasthan.gov.in/SD1/Home/Public2/Default.aspx", category: "national" },
+	{ name: "RBSE", url: "https://rajeduboard.rajasthan.gov.in/main.asp", category: "national" },
+	{ name: "UGC", url: "https://www.ugc.gov.in/Circulars", category: "national" },
+
 	// 29 State Counselling Portals
 	{ name: "Andhra Pradesh", url: "https://drntr.uhsap.in/index/", category: "counselling" },
 	{ name: "Arunachal Pradesh", url: "https://apdhte.nic.in/", category: "counselling" },
 	{ name: "Assam", url: "https://dme.assam.gov.in/", category: "counselling" },
-	{ name: "Bihar", url: "https://bceceboard.bihar.gov.in/", category: "counselling" },
+	{ name: "Bihar", url: "https://bceceboard.bihar.gov.in/NoticeBoard.php", category: "counselling" },
 	{ name: "Chhattisgarh", url: "https://cgdme.in/", category: "counselling" },
 	{ name: "Goa", url: "https://dte.goa.gov.in/", category: "counselling" },
-	{ name: "Gujarat", url: "https://www.medadmgujarat.org/", category: "counselling" },
+	{ name: "Gujarat", url: "https://www.medadmgujarat.org/ug/home.aspx", category: "counselling" },
 	{ name: "Haryana", url: "https://dmer.haryana.gov.in/", category: "counselling" },
 	{ name: "Himachal Pradesh", url: "https://amruhp.ac.in/", category: "counselling" },
 	{ name: "Jharkhand", url: "https://jceceb.jharkhand.gov.in/", category: "counselling" },
@@ -97,19 +120,44 @@ export const OFFICIAL_TARGETS: Array<{ name: string; url: string; category: "nat
 	{ name: "Meghalaya", url: "https://www.meghealth.gov.in/", category: "counselling" },
 	{ name: "Mizoram", url: "https://dhte.mizoram.gov.in/", category: "counselling" },
 	{ name: "Nagaland", url: "https://dte.nagaland.gov.in/", category: "counselling" },
-	{ name: "Odisha", url: "https://ojee.nic.in/", category: "counselling" },
+	{ name: "Odisha", url: "https://ojee.nic.in/notices/", category: "counselling" },
 	{ name: "Punjab", url: "https://bfuhs.ggsmch.org/", category: "counselling" },
 	{ name: "Rajasthan", url: "https://ug.neetrajasthan.com/home", category: "counselling" },
-	{ name: "Sikkim", url: "https://statequota.sikkim.gov.in/", category: "counselling" },
-	{ name: "Tamil Nadu", url: "https://tnmedicalselection.net/", category: "counselling" },
-	{ name: "Telangana", url: "https://www.knruhs.telangana.gov.in/", category: "counselling" },
-	{ name: "Tripura", url: "https://trmcc.admissions.nic.in/", category: "counselling" },
+	{ name: "Sikkim", url: "https://education.sikkim.gov.in/", category: "counselling" },
+	{ name: "Tamil Nadu", url: "https://tnmedicalselection.net/notification.aspx", category: "counselling" },
+	{ name: "Telangana", url: "https://www.knruhs.telangana.gov.in/all-notifications/", category: "counselling" },
+	{ name: "Tripura", url: "https://trmcc.admissions.nic.in/notices/", category: "counselling" },
 	{ name: "Uttar Pradesh", url: "https://dgme.up.gov.in/", category: "counselling" },
 	{ name: "Uttarakhand", url: "https://www.hnbumu.ac.in/", category: "counselling" },
 	{ name: "West Bengal", url: "https://wbmcc.nic.in/", category: "counselling" },
+
+	// 23 IIT Institutes (Admissions & Announcement Boards)
+	{ name: "IIT Bhilai", url: "https://www.iitbhilai.ac.in/index.php?pid=aca_admission", category: "iit" },
+	{ name: "IIT Bhubaneswar", url: "https://www.iitbbs.ac.in/index.php/home/academics/admission/", category: "iit" },
+	{ name: "IIT Bombay", url: "https://portal.iitb.ac.in/", category: "iit" },
+	{ name: "IIT Delhi", url: "https://home.iitd.ac.in/", category: "iit" },
+	{ name: "IIT Dharwad", url: "https://www.iitdh.ac.in/announcement", category: "iit" },
+	{ name: "IIT (ISM) Dhanbad", url: "https://www.iitism.ac.in/all-active-notices", category: "iit" },
+	{ name: "IIT Gandhinagar", url: "https://iitgn.ac.in/news", category: "iit" },
+	{ name: "IIT Goa", url: "https://iitgoa.ac.in/news/", category: "iit" },
+	{ name: "IIT Guwahati", url: "https://iitg.ac.in/acad/admission/", category: "iit" },
+	{ name: "IIT Hyderabad", url: "https://iith.ac.in/", category: "iit" },
+	{ name: "IIT Indore", url: "https://www.iiti.ac.in/admissions", category: "iit" },
+	{ name: "IIT Jammu", url: "https://iitjammu.ac.in/announcements", category: "iit" },
+	{ name: "IIT Jodhpur", url: "https://iitj.ac.in/main/en/admission-links", category: "iit" },
+	{ name: "IIT Kanpur", url: "https://www.iitk.ac.in/announcements", category: "iit" },
+	{ name: "IIT Kharagpur", url: "https://www.iitkgp.ac.in/iitkgp-announcements", category: "iit" },
+	{ name: "IIT Madras", url: "https://www.iitm.ac.in/the-campus/announcements", category: "iit" },
+	{ name: "IIT Mandi", url: "https://iitmandi.ac.in/", category: "iit" },
+	{ name: "IIT Palakkad", url: "https://iitpkd.ac.in/news", category: "iit" },
+	{ name: "IIT Patna", url: "https://www.iitp.ac.in/notices", category: "iit" },
+	{ name: "IIT Roorkee", url: "https://iitr.ac.in/Academics/Admission.html", category: "iit" },
+	{ name: "IIT Ropar", url: "https://www.iitrpr.ac.in/", category: "iit" },
+	{ name: "IIT Tirupati", url: "https://www.iittp.ac.in/admissions", category: "iit" },
+	{ name: "IIT (BHU) Varanasi", url: "https://iitbhu.ac.in/news", category: "iit" },
 ];
 
-const DATA_DIR = path.resolve(process.cwd(), "server/data");
+const DATA_DIR = path.resolve(process.cwd(), process.cwd().endsWith("server") ? "data" : "server/data");
 const MONITORS_FILE = path.join(DATA_DIR, "monitors.json");
 const SCREENSHOTS_DIR = path.join(DATA_DIR, "screenshots", "monitors");
 
@@ -274,13 +322,6 @@ export async function capturePageDiff(siteId: string, pageId: string): Promise<M
 	page.status = "capturing";
 	saveMonitoredSites(sites);
 
-	// Dynamic requires for zero-overhead startup
-	const { createRequire } = await import("module");
-	const req = createRequire(import.meta.url || __filename);
-	const { chromium } = req("playwright");
-	const { PNG } = req("pngjs");
-	const pixelmatch = req("pixelmatch");
-
 	const browser = await chromium.launch({
 		headless: true,
 		args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
@@ -288,28 +329,98 @@ export async function capturePageDiff(siteId: string, pageId: string): Promise<M
 
 	try {
 		const context = await browser.newContext({
+			ignoreHTTPSErrors: true,
 			viewport: { width: 1280, height: 720 },
+			locale: "en-US",
 			userAgent:
 				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+			extraHTTPHeaders: {
+				"Accept-Language": "en-US,en;q=0.9",
+				"Sec-Ch-Ua": "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+				"Sec-Ch-Ua-Mobile": "?0",
+				"Sec-Ch-Ua-Platform": "\"macOS\"",
+				"Upgrade-Insecure-Requests": "1",
+			},
 		});
 
 		const pwPage: Page = await context.newPage();
 
 		logger.info(`[SiteDiff] Capturing URL: ${page.url}`);
-		await pwPage.goto(page.url, { waitUntil: "load", timeout: 15000 }).catch(async () => {
-			await pwPage.goto(page.url, { waitUntil: "domcontentloaded", timeout: 10000 }).catch(() => {});
-		});
-		await pwPage.waitForTimeout(1000);
+		let navSuccess = false;
+		let navError: Error | null = null;
+		try {
+			await pwPage.goto(page.url, { waitUntil: "load", timeout: 15000 });
+			navSuccess = true;
+		} catch (e: any) {
+			logger.warn(`[SiteDiff] Initial 'load' navigation timed out/failed for ${page.url}, retrying with domcontentloaded: ${e.message}`);
+			try {
+				await pwPage.goto(page.url, { waitUntil: "domcontentloaded", timeout: 10000 });
+				navSuccess = true;
+			} catch (e2: any) {
+				navError = e2;
+				logger.warn(`[SiteDiff] Fallback navigation failed for ${page.url}: ${e2.message}`);
+			}
+		}
 
-		// Freeze CSS animations
+		if (!navSuccess) {
+			page.status = "error";
+			page.errorMessage = navError?.message || "Navigation timeout or connection failure";
+			saveMonitoredSites(sites);
+			throw navError || new Error(`Failed to navigate to ${page.url}`);
+		}
+
+		// Wait 2.5s for dynamic content / SPA hydration
+		await pwPage.waitForTimeout(2500);
+
+		// Freeze CSS animations, transitions, and hide dynamic photo carousels/live clocks
 		await pwPage.addStyleTag({
 			content: `
 				*, *::before, *::after {
 					transition-property: none !important;
+					transition: none !important;
 					animation: none !important;
+					animation-play-state: paused !important;
+				}
+				/* Hide non-content photo carousels, hero sliders, rotating banners, and live clocks */
+				.carousel, .carousel-inner, .carousel-item,
+				.slide, .slider, .bx-wrapper, .owl-carousel,
+				.hero-slider, .flexslider, .swiper, .swiper-wrapper,
+				.date-time, .time-widget, .live-clock, #clock, .clock, .timestamp,
+				iframe, .ad-banner, .advertisement, [id*="google_ads"] {
+					display: none !important;
+					opacity: 0 !important;
+					visibility: hidden !important;
 				}
 			`,
 		}).catch(() => {});
+
+		// Extract visible links & text to verify genuine notice additions vs cosmetic shift
+		const visibleLinks: Array<{ text: string; href: string }> = await pwPage.evaluate(() => {
+			const anchors = Array.from(document.querySelectorAll("a[href]"));
+			return anchors.map(a => ({
+				text: (a.textContent || "").trim().replace(/\s+/g, " "),
+				href: (a as HTMLAnchorElement).href
+			})).filter(a => a.text.length > 2 && !a.href.startsWith("javascript:"));
+		}).catch(() => []);
+
+		// Scan page source for commented document links so staged notices are recognized as genuine changes
+		const pageHtml = await pwPage.content().catch(() => "");
+		const commentRegex = /<!--([\s\S]*?)-->/g;
+		let commentMatch: RegExpExecArray | null;
+		while ((commentMatch = commentRegex.exec(pageHtml)) !== null) {
+			const cText = commentMatch[1];
+			if (cText && (cText.includes(".pdf") || cText.includes("<a"))) {
+				const hrefMatches = cText.matchAll(/href=["']([^"']+\.pdf[^"']*)["']/gi);
+				for (const hm of hrefMatches) {
+					try {
+						if (hm && hm[1]) {
+							const absUrl = new URL(hm[1], page.url).href;
+							visibleLinks.push({ text: `[Early Staged PDF] ${hm[1]}`, href: absUrl });
+						}
+					} catch (e) {}
+				}
+			}
+		}
 
 		const currentFileName = `${page.id}.png`;
 		const currentFilePath = path.join(SCREENSHOTS_DIR, currentFileName);
@@ -317,10 +428,21 @@ export async function capturePageDiff(siteId: string, pageId: string): Promise<M
 		const diffFilePath = path.join(SCREENSHOTS_DIR, `${page.id}_diff.png`);
 
 		// Capture screenshot
-		const newBuffer = await pwPage.screenshot({ fullPage: false });
+		const newBuffer = await pwPage.screenshot({ fullPage: false, timeout: 8000 });
 
-		if (!fs.existsSync(baselineFilePath)) {
-			// First run: save as both baseline and current
+		// Safeguard: Never overwrite a valid screenshot (>10KB) with an empty white page (<6KB)
+		const existingBaselineSize = fs.existsSync(baselineFilePath) ? fs.statSync(baselineFilePath).size : 0;
+		const existingCurrentSize = fs.existsSync(currentFilePath) ? fs.statSync(currentFilePath).size : 0;
+		if (newBuffer.length < 6000 && (existingBaselineSize > 10000 || existingCurrentSize > 10000)) {
+			logger.warn(`[SiteDiff] Blank screenshot detected for ${page.url} (${newBuffer.length} bytes). Preserving existing valid capture.`);
+			page.status = "idle";
+			page.lastChecked = new Date().toISOString();
+			saveMonitoredSites(sites);
+			return page;
+		}
+
+		if (!fs.existsSync(baselineFilePath) || existingBaselineSize < 6000) {
+			// Save as baseline and current if no baseline exists or baseline was a corrupted/blank image
 			fs.writeFileSync(baselineFilePath, newBuffer);
 			fs.writeFileSync(currentFilePath, newBuffer);
 
@@ -330,9 +452,13 @@ export async function capturePageDiff(siteId: string, pageId: string): Promise<M
 			page.diffPercent = 0;
 			page.diffPixels = 0;
 			page.hasChange = false;
+			page.isCosmeticOnly = false;
 			page.isBlockedOrError = false;
 			page.status = "idle";
 			page.lastChecked = new Date().toISOString();
+			if (visibleLinks.length > 0) {
+				page.lastKnownLinks = visibleLinks.slice(0, 100);
+			}
 		} else {
 			// Diff against existing baseline
 			fs.writeFileSync(currentFilePath, newBuffer);
@@ -355,14 +481,37 @@ export async function capturePageDiff(siteId: string, pageId: string): Promise<M
 			const totalPixels = width * height;
 			const diffPercent = Math.round((numDiffPixels / totalPixels) * 1000) / 10;
 
+			const prevLinks = new Set((page.lastKnownLinks || []).map(l => l.href));
+			const newLinks = visibleLinks.filter(l => !prevLinks.has(l.href));
+			const hadPriorLinks = Boolean(page.lastKnownLinks && page.lastKnownLinks.length > 0);
+
+			// Dual Verification Gate: If pixels changed but 0 new links/text appeared, flag as cosmetic
+			const isPurelyCosmetic = hadPriorLinks && newLinks.length === 0;
+
 			page.baselineScreenshot = `/screenshots/monitors/${page.id}_baseline.png`;
 			page.currentScreenshot = `/screenshots/monitors/${page.id}.png`;
 			page.diffScreenshot = `/screenshots/monitors/${page.id}_diff.png`;
 			page.diffPixels = numDiffPixels;
 			page.diffPercent = diffPercent;
-			page.hasChange = diffPercent > 0.05;
+			page.isCosmeticOnly = isPurelyCosmetic;
+			page.hasChange = diffPercent > 0.05 && !isPurelyCosmetic;
 			page.status = "idle";
 			page.lastChecked = new Date().toISOString();
+			if (visibleLinks.length > 0) {
+				page.lastKnownLinks = visibleLinks.slice(0, 100);
+			}
+
+			// Visual Diff to Scraper Bridge: When visual change > 0.05% with genuine new content detected
+			if (page.hasChange) {
+				logger.info(`[SiteDiff Bridge] Genuine content change detected on ${page.name} (${newLinks.length} new links) — triggering auto-scrape!`);
+				import("./directScraperService").then(({ scrapeSinglePortal }) => {
+					scrapeSinglePortal(page.url).catch((err) => {
+						logger.warn(`[SiteDiff Bridge] Auto-scrape failed for ${page.url}: ${err.message}`);
+					});
+				}).catch(() => {});
+			} else if (isPurelyCosmetic && diffPercent > 0.05) {
+				logger.info(`[SiteDiff Anti-Noise] Suppressed false-positive alarm for ${page.name}: ${diffPercent}% pixel diff, but 0 new links.`);
+			}
 		}
 
 		saveMonitoredSites(sites);
@@ -418,49 +567,65 @@ export async function captureAllSites(): Promise<MonitoredSite[]> {
 }
 
 /**
- * Seed all 37 Indian Education & State Counselling Portals
+ * Seed all Indian Education, State Counselling, and IIT Portals
  */
 export function seedOfficialPortals(forceReset: boolean = false): MonitoredSite[] {
 	ensureDirs();
 	let sites = getMonitoredSites();
 	if (forceReset || sites.length === 0 || sites.every((s) => s.id === "example-com" || s.id === "stripe-com" || s.id === "news-ycombinator-com")) {
 		sites = [];
-		for (const target of OFFICIAL_TARGETS) {
-			try {
-				const parsed = new URL(target.url);
-				const domain = parsed.hostname.replace(/^www\./, "");
-				const pagePath = parsed.pathname + parsed.search;
-				const pageId = crypto.createHash("md5").update(target.url).digest("hex").slice(0, 10);
-				const siteId = target.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+	}
 
-				const page: MonitoredPage = {
-					id: pageId,
-					name: target.name,
-					url: target.url,
-					path: pagePath || "/",
-					category: target.category,
-					status: "idle",
-					diffPercent: 0,
-					diffPixels: 0,
-					hasChange: false,
-					isBlockedOrError: false,
-				};
+	for (const target of OFFICIAL_TARGETS) {
+		try {
+			const parsed = new URL(target.url);
+			const domain = parsed.hostname.replace(/^www\./, "");
+			const pagePath = parsed.pathname + parsed.search;
+			const pageId = crypto.createHash("md5").update(target.url).digest("hex").slice(0, 10);
+			const targetSiteId = target.siteId || target.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+			const targetSiteName = target.siteName || target.name;
 
-				sites.push({
-					id: siteId,
-					name: target.name,
+			const newPage: MonitoredPage = {
+				id: pageId,
+				name: target.name,
+				url: target.url,
+				path: pagePath || "/",
+				category: target.category,
+				status: "idle",
+				diffPercent: 0,
+				diffPixels: 0,
+				hasChange: false,
+				isBlockedOrError: false,
+			};
+
+			let site = sites.find((s) => s.id === targetSiteId);
+			if (!site) {
+				site = {
+					id: targetSiteId,
+					name: targetSiteName,
 					domain,
 					rootUrl: `${parsed.protocol}//${parsed.host}/`,
 					category: target.category,
-					pages: [page],
-				});
-			} catch {
-				// Skip invalid
+					pages: [newPage],
+				};
+				sites.push(site);
+			} else {
+				// Update or replace primary page if URL changed
+				const existingPageIndex = site.pages.findIndex((p) => p.name === target.name || p.id === pageId);
+				if (existingPageIndex !== -1) {
+					site.pages[existingPageIndex].url = target.url;
+					site.pages[existingPageIndex].path = pagePath || "/";
+					site.pages[existingPageIndex].id = pageId;
+				} else {
+					site.pages.push(newPage);
+				}
 			}
+		} catch {
+			// Skip invalid
 		}
-		saveMonitoredSites(sites);
-		logger.info(`[SiteDiff] Pre-seeded ${sites.length} official national & state counselling portals.`);
 	}
+	saveMonitoredSites(sites);
+	logger.info(`[SiteDiff] Pre-seeded/updated ${sites.length} official national, state counselling, and IIT portals.`);
 	return sites;
 }
 
@@ -506,4 +671,51 @@ export function initSiteDiffScheduler(io?: any) {
 			logger.error(`[SiteDiff Scheduler] Periodic check failed: ${err.message}`);
 		}
 	}, intervalMinutes * 60 * 1000);
+}
+
+/**
+ * 48-Hour Rolling Retention & Garbage Collection:
+ * Removes stale or orphaned screenshot files not actively referenced by monitors.json
+ * to permanently keep disk space capped under ~60MB.
+ */
+export function cleanOrphanedScreenshots(): { deletedCount: number; freedBytes: number } {
+	ensureDirs();
+	const sites = getMonitoredSites();
+	const activeFileNames = new Set<string>();
+
+	for (const site of sites) {
+		for (const page of site.pages || []) {
+			activeFileNames.add(`${page.id}.png`);
+			activeFileNames.add(`${page.id}_baseline.png`);
+			activeFileNames.add(`${page.id}_diff.png`);
+		}
+	}
+
+	let deletedCount = 0;
+	let freedBytes = 0;
+	const now = Date.now();
+	const MAX_AGE_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+	if (fs.existsSync(SCREENSHOTS_DIR)) {
+		const files = fs.readdirSync(SCREENSHOTS_DIR);
+		for (const file of files) {
+			if (!file.endsWith(".png")) continue;
+			const filePath = path.join(SCREENSHOTS_DIR, file);
+			try {
+				const stats = fs.statSync(filePath);
+				const isOld = now - stats.mtimeMs > MAX_AGE_MS;
+				// If file is not in activeFileNames OR is an orphaned capture older than 48h
+				if (!activeFileNames.has(file) && isOld) {
+					freedBytes += stats.size;
+					fs.unlinkSync(filePath);
+					deletedCount++;
+				}
+			} catch (e: any) {
+				logger.warn(`[SiteDiff GC] Error checking file ${file}: ${e.message}`);
+			}
+		}
+	}
+
+	logger.info(`[SiteDiff GC] Purged ${deletedCount} orphaned screenshot files, freed ${(freedBytes / (1024 * 1024)).toFixed(2)} MB`);
+	return { deletedCount, freedBytes };
 }
