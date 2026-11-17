@@ -1,4 +1,45 @@
+# Dependencies
 node_modules/
+*/node_modules/
+*.nosync/
+
+# Build & Compilation Outputs
 dist/
+build/
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+server/src/**/*.d.ts
+server/src/**/*.d.ts.map
+server/src/**/*.js.map
+server/test_start.*
+
+# SQLite & Local Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+server/prisma/*.db
+
+# Runtime caches & ephemeral generated data
+server/data/screenshots/
+server/data/neet_dedup_cache.json
+
+# Environment variables & secrets
 .env
+.env.*
+!.env.example
+
+# OS & Editor files
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archives & Temporary files
+*.zip
+*.tar
+*.tar.gz
+.git-original-backup/
+zi0oqzdD
+zieoONVN
